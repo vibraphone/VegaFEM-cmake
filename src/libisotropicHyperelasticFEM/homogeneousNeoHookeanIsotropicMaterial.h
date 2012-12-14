@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *

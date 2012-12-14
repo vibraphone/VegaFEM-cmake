@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "forceModel" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC     *
  * All rights reserved.                                                  *

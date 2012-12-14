@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "generateInterpolant" utility , Copyright (C) 2007 CMU, 2009 MIT,     *
  *                                               2012 USC                *
@@ -130,6 +130,7 @@ int main(int argc, char ** argv)
   numExternalVertices = volumetricMesh->generateInterpolationWeights(
     numInterpolationLocations, interpolationLocations, &vertices, &weights, threshold, elementListp, verbose);
 
+  printf("Saving weights to %s...\n", outputFilename); fflush(NULL);
   volumetricMesh->saveInterpolationWeights(outputFilename, numInterpolationLocations, volumetricMesh->getNumElementVertices(), vertices, weights);
 
   if (strcmp(outputElementFilename, "__none") != 0)

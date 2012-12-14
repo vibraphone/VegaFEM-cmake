@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sceneObject" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC    *
  * All rights reserved.                                                  *
@@ -15,8 +15,6 @@
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
  *                                                                       *
- * Version 3.0                                                           *
- *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
  * included with this library in the file LICENSE.txt                    *
@@ -30,7 +28,7 @@
 
 /*
   A library to load and render an obj mesh (called here a "scene object").
-  This library depends on the "obj" library. See also objMesh.h.
+  This library depends on the "objMesh" library. See also objMesh.h.
 */
 
 #ifndef _SCENEOBJECT_H_
@@ -80,6 +78,7 @@ public:
 
   inline int Getn() { return n; }
   inline int GetNumVertices() { return n; }
+  inline int GetNumFaces() { return mesh->getNumFaces(); }
   inline ObjMesh * GetMesh() { return mesh; }
 
   // smallest ball radius that encloses the model, with the ball centered at the given centroid
@@ -92,13 +91,13 @@ public:
   // finds the closest vertex using an exhaustive search
   // returns distance in "distance", if distance is not NULL
   // in this class, you can safely ignore the last parameter (keep it NULL)
-  virtual int FindClosestVertex(Vec3d & queryPos, double * distance=NULL, double * auxVertexBuffer=NULL);
+  virtual int GetClosestVertex(Vec3d & queryPos, double * distance=NULL, double * auxVertexBuffer=NULL);
 
   // ==== texture mapping and materials ====
 
   // lightingModulation determines whether to multiply or replace the object color with the texture color
   // mipmap determines whether to use mipmapping for texture rendering
-  int SetUpTextures(LightingModulationType lightingModulation, MipmapType mipmap); // you must call this **after** OpenGL has been initialized!!!
+  int SetUpTextures(LightingModulationType lightingModulation=MODULATE, MipmapType mipmap=USEMIPMAP); // you must call this **after** OpenGL has been initialized!!!
   void EnableTextures();
   void DisableTextures();
   inline bool hasTextures() { return hasTextures_; }

@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "integrator" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC     *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -106,7 +104,7 @@ int ImplicitBackwardEulerSparse::DoTimestep()
 
     *tangentStiffnessMatrix *= internalForceScalingFactor;
 
-    memset(qresidual,0,sizeof(double)*r);
+    memset(qresidual, 0, sizeof(double) * r);
 
     if (useStaticSolver)
     {
@@ -176,7 +174,7 @@ int ImplicitBackwardEulerSparse::DoTimestep()
     }
     else
     {
-      // rel error wrt to initial error before performing this iteration
+      // error divided by the initial error, before performing this iteration
       errorQuotient = error / error0; 
     }
 
@@ -187,7 +185,7 @@ int ImplicitBackwardEulerSparse::DoTimestep()
     RemoveRows(r, bufferConstrained, qdelta, numConstrainedDOFs, constrainedDOFs);
     systemMatrix->AssignSuperMatrix(tangentStiffnessMatrix);
 
-    // solve: systemMatrix * qdelta = qresidual
+    // solve: systemMatrix * buffer = bufferConstrained
 
     PerformanceCounter counterSystemSolveTime;
     memset(buffer, 0, sizeof(double) * r);

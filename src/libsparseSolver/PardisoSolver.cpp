@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -52,9 +50,6 @@
 #ifdef __APPLE__
   #include "TargetConditionals.h"
 #endif
-
-#if ((defined __GNUC__) && (TARGET_CPU_PPC))
-#else
 
 #include "mkl.h"
 
@@ -221,6 +216,30 @@ int PardisoSolver::SolveLinearSystem(double * x, const double * rhs)
   return (int)error;
 }
 
+MKL_INT PardisoSolver::SolveLinearSystemMultipleRHS(double * x, const double * rhs, int numRHS)
+{
+  if (directIterative != 0)
+  {
+    printf("Error: direct-iterative flag was specified in the constructor (must use SolveLinearSystemDirectIterative routine).\n");
+    return 101;
+  }
+
+  if (verbose >= 2)
+    printf("Solving linear system...(%d threads, using previously computed LU)\n", numThreads);
+
+  phase = 33;
+
+  PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, NULL, &numRHS, iparm, &msglvl, (double*)rhs, x, &error);
+
+  if (error != 0)
+    printf("Error: Pardiso solve returned non-zero exit code %d.\n", error);
+
+  if (verbose >= 2)
+    printf("Solve completed.\n");
+
+  return error;
+}
+
 MKL_INT PardisoSolver::SolveLinearSystemDirectIterative(const SparseMatrix * A, double * x, const double * rhs)
 {
   if (directIterative != 1)
@@ -247,8 +266,6 @@ MKL_INT PardisoSolver::SolveLinearSystemDirectIterative(const SparseMatrix * A, 
 
   return error;
 }
-
-#endif
 
 #else
 
@@ -277,6 +294,12 @@ MKL_INT PardisoSolver::ComputeCholeskyDecomposition(const SparseMatrix * A)
 }
 
 MKL_INT PardisoSolver::SolveLinearSystem(double * x, const double * rhs)
+{
+  DisabledSolverError();
+  return 1;
+}
+
+MKL_INT PardisoSolver::SolveLinearSystemMultipleRHS(double * x, const double * rhs, int numRHS)
 {
   DisabledSolverError();
   return 1;

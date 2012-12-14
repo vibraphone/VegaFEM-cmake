@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "massSpringSystem" library, Copyright (C) 2007 CMU, 2009 MIT,         *
  *                                           2012 USC                    *
@@ -15,8 +15,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -85,6 +83,7 @@ public:
   int GetNumParticles() { return numParticles; }
   int GetNumEdges() { return numEdges; }
   int * GetEdges() { return edges; }
+  double * GetRestPositions() { return restPositions; }
 
   // creates the mass matrix (diagonal); each diagonal entry is expanded into a diagonal submatrix of size 'expanded' (typically, for 3D simulations, expanded should be 3)
   void GenerateMassMatrix(SparseMatrix ** M, int expanded=3);

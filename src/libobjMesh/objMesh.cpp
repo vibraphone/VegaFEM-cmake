@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
- * "obj" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC            *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -343,7 +341,7 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
   }
 
   computeBoundingBox();
-
+  
   // statistics
   if (verbose)
   {
@@ -1781,7 +1779,7 @@ void ObjMesh::setNormalsToAverageFaceNormals()
   }
 }
 
-unsigned int ObjMesh::findClosestVertex(const Vec3d & queryPos, double * distance) const
+unsigned int ObjMesh::getClosestVertex(const Vec3d & queryPos, double * distance) const
 {
   double closestDist2 = DBL_MAX;
   double candidateDist2;
@@ -2031,7 +2029,7 @@ void ObjMesh::buildVertexNormals(double angle)
 {
   if (vertexFaceNeighbors.size() == 0)
   {
-    printf("Error: buildNornals() failed because vertex face neighbors were not built prior to calling buildNormals(). Call \"buildVertexFaceNeighbors\".\n");
+    printf("Error: buildVertexNormals() failed because vertex face neighbors were not built prior to calling buildVertexNormals(). Call \"buildVertexFaceNeighbors\".\n");
     return;
   }
 
@@ -2111,7 +2109,7 @@ void ObjMesh::buildVertexNormalsFancy(double angle)
 {
   if (vertexFaceNeighbors.size() == 0)
   {
-    printf("Error: buildNornals() failed because vertex face neighbors were not built prior to calling buildNormals(). Call \"buildVertexFaceNeighbors\".\n");
+    printf("Error: buildVertexNormalsFancy() failed because vertex face neighbors were not built prior to calling buildVertexNormalsFancy(). Call \"buildVertexFaceNeighbors\".\n");
     return;
   }
 
@@ -2169,6 +2167,14 @@ void ObjMesh::setMaterialAlpha(double alpha)
 {
   for(unsigned int i = 0; i < materials.size(); i++)
     materials[i].setAlpha(alpha);
+}
+
+void ObjMesh::setSingleMaterial(const Material & material)
+{
+  materials.clear();
+  materials.push_back(material);
+  for(int groupNo=0; groupNo<(int)groups.size(); groupNo++)
+    groups[groupNo].setMaterialIndex(0);
 }
 
 void ObjMesh::computePseudoNormals()
@@ -2962,6 +2968,36 @@ void ObjMesh::exportFaceGeometry(int * numVertices, double ** vertices, int * nu
     }
 
   printf("Exported %d vertices and %d faces. Average number of vertices: %G\n", *numVertices, *numFaces, 1.0 * totalCardinality / (*numFaces));
+}
+
+// allows one to query the vertex indices of each triangle
+// order of triangles is same as in "exportGeometry": for every group, traverse all faces, and tesselate each face into triangles 
+void ObjMesh::initTriangleLookup()
+{
+  int numVertices;
+  double * vertices;
+  int numTriangles;
+  int * trianglesV;
+  exportGeometry(&numVertices, &vertices, &numTriangles , &trianglesV);
+
+  triangles.clear();
+  for(int i=0; i<3*numTriangles; i++)
+    triangles.push_back(trianglesV[i]);
+
+  free(trianglesV);
+  free(vertices);
+}
+
+void ObjMesh::clearTriangleLookup()
+{
+  triangles.clear();
+}
+
+void ObjMesh::getTriangle(int triangleIndex, int * vtxA, int * vtxB, int * vtxC) // must call "initTriangleLookup" first
+{
+  *vtxA = triangles[3*triangleIndex+0];
+  *vtxB = triangles[3*triangleIndex+1];
+  *vtxC = triangles[3*triangleIndex+2];
 }
 
 void ObjMesh::renumberVertices(const vector<int> & permutation)

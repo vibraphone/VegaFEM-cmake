@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -62,6 +60,8 @@ public:
   // solve: A * x = rhs, using the previously computed Cholesky factorization
   // rhs is not modified
   virtual int SolveLinearSystem(double * x, const double * rhs);
+
+  MKL_INT SolveLinearSystemMultipleRHS(double * x, const double * rhs, int numRHS);
 
   // solve: A * x = rhs, using the direct-iterative solver
   MKL_INT SolveLinearSystemDirectIterative(const SparseMatrix * A, double * x, const double * rhs);

@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -93,6 +91,8 @@ public:
  // === interpolation ===
 
   virtual void computeBarycentricWeights(int el, Vec3d pos, double * weights) const;
+  void computeGradient(int element, const double * U, int numFields, double * grad) const; // for tet meshes, gradient is constant inside each element, hence no need to specify position
+  virtual void interpolateGradient(int element, const double * U, int numFields, Vec3d pos, double * grad) const; // conforms to the virtual function in the base class, "pos" does not affect the computation
 
 protected:
   void computeElementMassMatrixHelper(Vec3d a, Vec3d b, Vec3d c, Vec3d d, double * buffer);

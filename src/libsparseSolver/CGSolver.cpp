@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -39,11 +37,23 @@ CGSolver::CGSolver(SparseMatrix * A_): A(A_)
   InitBuffers();
   multiplicator = CGSolver::DefaultMultiplicator;
   multiplicatorData = (void*)A;
+  invDiagonal = NULL;
 }
 
-CGSolver::CGSolver(int numRows_, blackBoxProductType callBackFunction_, void * data_): numRows(numRows_), multiplicator(callBackFunction_), multiplicatorData(data_), A(NULL)
+CGSolver::CGSolver(int numRows_, blackBoxProductType callBackFunction_, void * data_, double * diagonal): numRows(numRows_), multiplicator(callBackFunction_), multiplicatorData(data_), A(NULL)
 {
   InitBuffers();
+  invDiagonal = (double*) malloc (sizeof(double) * numRows);
+  if (diagonal == NULL)
+  {
+    for(int i=0; i<numRows; i++)
+      invDiagonal[i] = 1.0;
+  }
+  else
+  {
+    for(int i=0; i<numRows; i++)
+      invDiagonal[i] = 1.0 / diagonal[i];
+  }
 }
 
 CGSolver::~CGSolver()
@@ -65,7 +75,6 @@ void CGSolver::InitBuffers()
   r = (double*) malloc (sizeof(double) * numRows);
   d = (double*) malloc (sizeof(double) * numRows);
   q = (double*) malloc (sizeof(double) * numRows);
-  invDiagonal = (double*) malloc (sizeof(double) * numRows);
 }
 
 // implements the virtual method from LinearSolver by calling "SolveLinearSystem" with default parameters
@@ -100,9 +109,9 @@ int CGSolver::SolveLinearSystemWithoutPreconditioner(double * x, const double * 
     for(int i=0; i<numRows; i++)
       x[i] += alpha * d[i];
 
-    if (iteration % 20 == 0)
+    if (iteration % 30 == 0)
     {
-      // periodically compute the exact residual
+      // periodically compute the exact residual (Shewchuk, page 8)
       multiplicator(multiplicatorData, x, r); //A->MultiplyVector(x,r);
       for (int i=0; i<numRows; i++)
         r[i] = b[i] - r[i];
@@ -128,12 +137,19 @@ int CGSolver::SolveLinearSystemWithoutPreconditioner(double * x, const double * 
 
 int CGSolver::SolveLinearSystemWithJacobiPreconditioner(double * x, const double * b, double eps, int maxIterations, int verbose)
 {
-  // extract diagonal entries
-  A->BuildDiagonalIndices(); // note: if indices are already built, this call will do nothing (you can therefore also call BuildDiagonalIndices() once and for all before calling SolveLinearSystemWithJacobiPreconditioner); in any case, BuildDiagonalIndices() is fast (a single linear traversal of all matrix elements)
+  if (invDiagonal == NULL)
+  {
+    // This code will only execute when the class was constructed via the "SparseMatrix * A_" constructor (and only once).
+    // In the "blackBoxProductType callBackFunction_" constructor, invDiagonal would have already been set to non-NULL.
 
-  A->GetDiagonal(invDiagonal);
-  for(int i=0; i<numRows; i++)
-    invDiagonal[i] = 1.0 / invDiagonal[i]; // potential division by zero here (uncommon in practice)
+    // extract diagonal entries
+    A->BuildDiagonalIndices(); // note: if indices are already built, this call will do nothing (you can therefore also call BuildDiagonalIndices() once and for all before calling SolveLinearSystemWithJacobiPreconditioner); in any case, BuildDiagonalIndices() is fast (a single linear traversal of all matrix elements)
+
+    invDiagonal = (double*) malloc (sizeof(double) * numRows);
+    A->GetDiagonal(invDiagonal);
+    for(int i=0; i<numRows; i++)
+      invDiagonal[i] = 1.0 / invDiagonal[i]; // potential division by zero here (uncommon in practice)
+  }
 
   int iteration=1;
   multiplicator(multiplicatorData, x, r); //A->MultiplyVector(x,r);

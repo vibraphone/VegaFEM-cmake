@@ -1,0 +1,37 @@
+Changes in version 1.1: 
+=======================
+
+integrator: improved comments in ImplicitNewmarkSparse and ImplicitBackwardEulerSparse
+integrator: both ImplicitNewmarkSparse and ImplicitBackwardEulerSparse now use a zero initial guess for each iteration (only relevant with PCG; before: ImplicitNewmarkSparse used previous timestep solution)
+isotropicHyperelasticFEM: improved the text description (in the comment) of the Mooney-Rivlin material model
+massSpringSystem: renamed ObjConfig => ObjMeshConfig
+massSpringSystem: added MassSpringSystemobjMesh::getRestPositions
+objMesh: added ObjMesh::setSingleMaterial
+objMesh: added ObjMesh::getTriangle
+objMesh: fixed the "iFace" bug with custom colors in ObjMeshRender
+objMesh: changed delete to free in ObjMeshRender
+objMesh: renamed findClosestVertex => getClosestVertex 
+objMesh: snychronized interface in ObjMeshRender with ObjMesh
+sceneObject: renamed FindClosestVertex => GetClosestVertex 
+sceneObject: added SceneObject::GetNumFaces
+sparseMatrix: improved headers in sparseMatrix.h: MultiplyMatrix*
+sparseMatrix: added SparseMatrix::AppendRowsColumns
+sparseMatrix: added SparseMatrix::MakeDenseMatrixTranspose
+sparseMatrix: fixed a rare bug in SparseMatrix::RemoveColumns
+sparseMatrix: changed the return type of Transpose to "SparseMatrix *"
+sparseSolver: added the ability to pass a diagonal preconditioner to the "black-box" mat-vec multiplication constructor in CGSolver
+sparseSolver: added PardisoSolver::SolveLinearSystemMultipleRHS
+volumetricMesh: added VolumetricMesh::getDefaultMaterial(double * E, double * nu, double * density)
+volumetricMesh: fixed a bug in the alternative constructor, VolumetricMesh::VolumetricMesh(int numVertices_, double * vertices_, int numElements_, int numElementVertices_, int * elements_, double E, double nu, double density): numElementVertices(numElementVertices_);
+volumetricMesh: added VolumetricMesh::getVolume and VolumetricMesh::getVertexVolumes
+volumetricMesh: added optional last parameter to VolumetricMesh::setToSubsetMesh
+volumetricMesh: added VolumetricMesh::computeGradient and VolumetricMesh::interpolateGradient
+volumetricMesh: added material information to the output mesh of GenerateSurfaceMesh::ComputeMesh
+volumetricMesh: added CubicMesh::subdivide
+volumetricMesh: changed "wa" to "w" and "ra" to "r" in fopen
+generateInterpolant: minor change (an extra printf)
+interactiveDeformableSimulator: minor changes to accommodate the above library changes
+cleaned up license headers (minor, stylistic change, no change in actual license)
+files converted to unix-style end-of-line characters
+small improvements to Makefile-header.linux
+

@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "Interactive deformable object simulator" driver application,         *
  *  Copyright (C) 2007 CMU, 2009 MIT, 2012 USC                           *
@@ -16,8 +16,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This utility is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -1025,7 +1023,7 @@ void mouseButtonActivityFunction(int button, int state, int x, int y)
 	  dragStartX = x;
 	  dragStartY = y;
           Vec3d pos(worldX, worldY, worldZ);
-	  pulledVertex = deformableObjectRenderingMesh->FindClosestVertex(pos);
+	  pulledVertex = deformableObjectRenderingMesh->GetClosestVertex(pos);
 	  printf("Clicked on vertex: %d (0-indexed)\n", pulledVertex);
 	}
 	else
@@ -1184,9 +1182,9 @@ void initSimulation()
       case OBJ:
 	{
 	  printf("Loading mass spring system from an obj file...\n");
-	  MassSpringSystemFromObjConfigFile massSpringSystemFromObjConfigFile;
+	  MassSpringSystemFromObjMeshConfigFile massSpringSystemFromObjMeshConfigFile;
 	  MassSpringSystemObjMeshConfiguration massSpringSystemObjMeshConfiguration;
-	  if (massSpringSystemFromObjConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0) 
+	  if (massSpringSystemFromObjMeshConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0) 
 	  {
 	    printf("Error initializing the mass spring system.\n");
 	    exit(1);

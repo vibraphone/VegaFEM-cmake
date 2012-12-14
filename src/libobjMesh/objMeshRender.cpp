@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
- * "obj" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC            *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -32,10 +30,10 @@
 using namespace std;
 #include "objMeshRender.h"
 
-// Renders the obj mesh
+// Renders the obj mesh.
 // Written by Daniel Schroeder and Jernej Barbic, 2011
 
-void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode)
+void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode_)
 {
   printf("loading texture %s.\n", fullPath.c_str());
   int width, height;
@@ -47,10 +45,10 @@ void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode)
   }
 
   glEnable(GL_TEXTURE_2D);
-  textureMode_ = textureMode;
-  texture_.first = true;
-  glGenTextures(1, &(texture_.second));
-  glBindTexture(GL_TEXTURE_2D, texture_.second);
+  textureMode = textureMode_;
+  texture.first = true;
+  glGenTextures(1, &(texture.second));
+  glBindTexture(GL_TEXTURE_2D, texture.second);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -72,7 +70,7 @@ void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode)
 
   glDisable(GL_TEXTURE_2D);
 
-  delete [] texData;
+  free(texData);
 }
 
 ObjMeshRender::ObjMeshRender(ObjMesh * mesh_) : mesh(mesh_) 
@@ -162,9 +160,9 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
         else
         {
           Texture * textureHandle = &(textures[groupHandle->getMaterialIndex()]);
-          glBindTexture(GL_TEXTURE_2D, textureHandle->texture());
+          glBindTexture(GL_TEXTURE_2D, textureHandle->getTexture());
           glEnable(GL_TEXTURE_2D);
-          if((textureHandle->textureMode() & OBJMESHRENDER_LIGHTINGMODULATIONBIT) == OBJMESHRENDER_GL_REPLACE)
+          if((textureHandle->getTextureMode() & OBJMESHRENDER_LIGHTINGMODULATIONBIT) == OBJMESHRENDER_GL_REPLACE)
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
           else
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -176,7 +174,7 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
       //printf("dif: %G %G %G\n", Kd[0], Kd[1], Kd[2]);
       //printf("spe: %G %G %G\n", Ks[0], Ks[1], Ks[2]);
   
-      for( unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); ++iFace )
+      for( unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); iFace++ )
       {
         const ObjMesh::Face * faceHandle = groupHandle->getFaceHandle(iFace);
   
@@ -192,10 +190,11 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
             warnMissingFaceNormals = true;
         }
   
-        for( unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); ++iVertex )
+        for( unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); iVertex++ )
         {
           const ObjMesh::Vertex * vertexHandle = faceHandle->getVertexHandle(iVertex);
           Vec3d v = mesh->getPosition(*vertexHandle);
+          int vertexPositionIndex = vertexHandle->getPositionIndex();
   
           // set normal
           if(renderMode & OBJMESHRENDER_SMOOTH)
@@ -226,7 +225,7 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
             if (customColors.size() == 0)
               glColor3f(0,0,1);
             else
-              glColor3f(customColors[iFace][0], customColors[iFace][1], customColors[iFace][2]);
+              glColor3f(customColors[vertexPositionIndex][0], customColors[vertexPositionIndex][1], customColors[vertexPositionIndex][2]);
           }
   
           // set position
@@ -399,6 +398,11 @@ void ObjMeshRender::loadTextures(int textureMode)
 
     textures[i].loadTexture(pathStr + string("/") + material->getTextureFilename(), textureMode);
   }
+}
+
+ObjMeshRender::Texture * ObjMeshRender::getTextureHandle(int textureIndex)
+{
+  return &textures[textureIndex];
 }
 
 unsigned char * ObjMeshRender::loadPPM(string filename, int * width, int * height)

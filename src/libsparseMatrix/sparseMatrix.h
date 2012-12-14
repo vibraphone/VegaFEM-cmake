@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseMatrix" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -204,18 +202,19 @@ public:
   void ScalarMultiplyAdd(const double alpha, SparseMatrix * dest=NULL); // dest += alpha * dest (if dest=NULL, operation is applied to this object)
   void MultiplyRow(int row, double scalar); // multiplies all elements in row 'row' with scalar 'scalar'
 
-  // multiplies the sparse matrix with the given vector
+  // multiplies the sparse matrix with the given vector/matrix
   void MultiplyVector(const double * vector, double * result) const; // result = A * vector
   void MultiplyVectorAdd(const double * vector, double * result) const; // result += A * vector
-  // multiplies the transpose of the matrix with the given vector
-  void TransposeMultiplyVector(const double * vector, double * result, int resultLength) const; // result = Transpose(A) * vector
-  void TransposeMultiplyVectorAdd(const double * vector, double * result) const; // result += Transpose(A) * vector
-  void MultiplyMatrix(int numRows, int numColumns, const double * denseMatrix, double * result) const; // result = A * denseMatrix (denseMatrix is a numRows x numColumns dense matrix, result is a n_ x numColumns dense matrix
-  void MultiplyMatrixAdd(const double * denseMatrix, int numColumns, double * result) const; // result += A * denseMatrix (result and denseMatrix are now dense matrices with 'numColumns' columns
+  void MultiplyVector(int startRow, int endRow, const double * vector, double * result) const; // result = A(startRow:endRow-1,:) * vector
+  void TransposeMultiplyVector(const double * vector, int resultLength, double * result) const; // result = trans(A) * vector
+  void TransposeMultiplyVectorAdd(const double * vector, double * result) const; // result += trans(A) * vector
+  void MultiplyMatrix(int numDenseRows, int numDenseColumns, const double * denseMatrix, double * result) const; // result = A * denseMatrix (denseMatrix is a numDenseRows x numDenseColumns dense matrix, result is a numRows x numDenseColumns dense matrix)
+  void MultiplyMatrixAdd(int numDenseRows, int numDenseColumns, const double * denseMatrix, double * result) const; // result += A * denseMatrix (denseMatrix is a numDenseRows x numDenseColumns dense matrix, result is a numDenseRows x numDenseColumns dense matrix)
+  void MultiplyMatrixTranspose(int numDenseColumns, const double * denseMatrix, double * result) const; // result = A * trans(denseMatrix) (trans(denseMatrix) is a dense matrix with 'numDenseColumns' columns, result is a numRows x numDenseColumns dense matrix)
 
-  // computes <M*vector, vector> (assumes symmetric M)
+  // computes <M * vector, vector> (assumes symmetric M)
   double QuadraticForm(const double * vector) const;
-  // normalizes vector in the M-norm: vector := vector / sqrt(<M*vector, vector>)  (assumes symmetric M)
+  // normalizes vector in the M-norm: vector := vector / sqrt(<M * vector, vector>)  (assumes symmetric M)
   void NormalizeVector(double * vector) const;
   void ConjugateMatrix(double * U, int r, double * MTilde); // computes MTilde = U^T M U (M can be a general square matrix, U need not be a square matrix; number of columns of U is r; sizes of M and U must be such that product is defined; output matrix will have size r x r, stored column-major)
   SparseMatrix ConjugateMatrix(SparseMatrix & U, int verbose=0); // computes U^T M U (M is this matrix, and can be a general square matrix, U need not be a square matrix; sizes of M and U must be such that product is defined)
@@ -246,6 +245,8 @@ public:
   // (this can be a huge matrix for large sparse matrices)
   // storage in denseMatrix must be pre-allocated
   void MakeDenseMatrix(double * denseMatrix) const;
+  // also transposes the matrix:
+  void MakeDenseMatrixTranspose(int numColumns, double * denseMatrix) const;
 
   // removes row(s) and column(s) from the matrix
   void RemoveRowColumn(int rowColumn); // 0-indexed
@@ -264,6 +265,7 @@ public:
 
   void IncreaseNumRows(int newNumRows); // increases the number of matrix rows (new rows are added at the bottom of the matrix, and are all empty)
   void SetRows(SparseMatrix * source, int startRow, int startColumn=0); // starting with startRow, overwrites the rows with those of matrix "source"; data is written into columns starting at startColumn
+  void AppendRowsColumns(SparseMatrix * source); // appends the matrix "source" at the bottom of matrix, and trans(source) to the right of the matrix
 
   // transposition (note: the matrix need not be symmetric)
   void BuildTranspositionIndices();
@@ -275,7 +277,7 @@ public:
   // numColumns is the number of columns in the original matrix;
   // this is important in case there are zero columns at the end of the matrix
   // if numColumns=-1 (default), GetNumColumns() will be called; however, this will lead to a transposed matrix with a fewer number of rows in case of empty columns at the end of the original matrix
-  SparseMatrix Transpose(int numColumns=-1);
+  SparseMatrix * Transpose(int numColumns=-1);
 
   // checks if the matrix is skew-symmetric
   // the non-zero entry locations must form a symmetric pattern

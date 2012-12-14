@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -107,6 +105,7 @@ public:
   inline Material * getElementMaterial(int el) const { return materials[elementMaterial[el]]; }
   void setMaterial(int i, Material & material) { *(materials[i]) = material; } // sets i-th material to the given material
   void setSingleMaterial(double E, double nu, double density); // erases all materials and creates a single material for the entire mesh
+  static void getDefaultMaterial(double * E, double * nu, double * density);
 
   inline int getNumSets() const { return numSets; }
   inline Set * getSet(int i) const { return sets[i]; }
@@ -125,7 +124,9 @@ public:
   Vec3d getElementCenter(int el) const;
 
   // center of mass and inertia tensor
+  double getVolume() const;
   virtual double getElementVolume(int el) const = 0;
+  void getVertexVolumes(double * vertexVolumes) const; // compute the volume "belonging" to each vertex
   virtual void getElementInertiaTensor(int el, Mat3d & inertiaTensor) const = 0; // returns the inertia tensor of a single element, around its center of mass, with unit density
   void getInertiaParameters(double & mass, Vec3d & centerOfMass, Mat3d & inertiaTensor) const ; // center of mass and inertia tensor for the entire mesh
 
@@ -158,7 +159,8 @@ public:
   // === submesh creation ===
 
   // (permanently) set this mesh to its submesh containing the specified elements (i.e., delete the mesh elements not on the given list of elements)
-  void setToSubsetMesh(std::set<int> & subsetElements, int removeIsolatedVertices=1);
+  // if vertexMap is non-null, it also returns a renaming datastructure: vertexMap[big mesh vertex] is the vertex index in the subset mesh
+  void setToSubsetMesh(std::set<int> & subsetElements, int removeIsolatedVertices=1, std::map<int,int> * vertexMap = NULL);
 
   // === interpolation ===
 
@@ -188,11 +190,19 @@ public:
   // interpolates 3D vector data from vertices of the 
   //   volumetric mesh (data given in u) to the target locations (output goes into uTarget)
   //   e.g., use this to interpolate deformation from the volumetric mesh to a triangle mesh
-  static void interpolate(double * u, double * uTarget, int numTargetLocations, 
-	  int numElementVertices, int * vertices, double * weights);
+  static void interpolate(double * u, double * uTarget, int numTargetLocations, int numElementVertices, int * vertices, double * weights);
 
   // computes barycentric weights of the given position with respect to the given element
   virtual void computeBarycentricWeights(int element, Vec3d pos, double * weights) const = 0;
+
+  // computes the gradient of a 3D vector field (specified at the volumetric mesh vertices), at the location "pos"
+  // "numFields" fields can be interpolated simultaneously; each is given as one column of the U matrix
+  // U is a 3numVertices x numFields matrix; stored column-major
+  // output: grad is 9 x numFields matrix, stored column-major; each column gives the gradient (3x3 matrix), stored row-major format
+  // return: 0 if pos inside the mesh, 1 otherwise
+  int interpolateGradient(const double * U, int numFields, Vec3d pos, double * grad) const;
+  // in this version, the element containing the "pos" must be known, and prescribed directly
+  virtual void interpolateGradient(int element, const double * U, int numFields, Vec3d pos, double * grad) const = 0;
 
   // === material-related nested classes ===
 

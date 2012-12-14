@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -93,6 +91,9 @@ public:
   virtual int getNumElementEdges() const; 
   virtual void getElementEdges(int el, int * edgeBuffer) const;
 
+  // subdivides the cube mesh
+  void subdivide();
+
   // === interpolation ===
 
   virtual void computeBarycentricWeights(int el, Vec3d pos, double * weights) const;
@@ -107,7 +108,7 @@ public:
   // vertices more than distanceThreshold away from any element vertex are assigned zero data
   int normalCorrection(double * vertexData, int numLocations, int r, double * interpolationLocations, double * staticNormals, double * normalCorrection, double zeroThreshold = -1.0) const; // note: this routine could be promoted to volumetricMesh.h
 
-  virtual void interpolateGradient(int element, double * U, int r, Vec3d pos, double * grad) const;
+  virtual void interpolateGradient(int element, const double * U, int numFields, Vec3d pos, double * grad) const;
 
 protected:
   double cubeSize;

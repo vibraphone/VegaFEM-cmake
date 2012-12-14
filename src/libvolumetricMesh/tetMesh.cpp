@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -303,6 +301,72 @@ double TetMesh::getTetDeterminant(Vec3d * a, Vec3d * b, Vec3d * c, Vec3d * d)
 
   return (-det(m0) + det(m1) - det(m2) + det(m3));
 }
+
+void TetMesh::interpolateGradient(int element, const double * U, int numFields, Vec3d pos, double * grad) const
+{
+  computeGradient(element, U, numFields, grad);
+}
+
+void TetMesh::computeGradient(int element, const double * U, int numFields, double * grad) const
+{
+  // grad is 9 x numFields
+  // grad is constant inside a tet
+  Vec3d vtx[4];
+  for(int i=0; i<4; i++)
+    vtx[i] = *getVertex(element,i);
+
+  // form M =
+  // [b - a]
+  // [c - a]
+  // [d - a]
+
+  Mat3d M(vtx[1] - vtx[0], vtx[2] - vtx[0], vtx[3] - vtx[0]);
+  Mat3d MInv = inv(M);
+  //printf("M=\n");
+  //M.print();
+
+  for(int field=0; field<numFields; field++)
+  {
+    // form rhs =
+    // [U1 - U0]
+    // [U2 - U0]
+    // [U3 - U0]
+    const double * u[4];
+    for(int i=0; i<4; i++)
+      u[i] = &U[3 * numVertices * field + 3 * getVertexIndex(element, i)];
+
+    Vec3d rows[3];
+    for(int i=0; i<3; i++)
+      rows[i] = Vec3d(u[i+1]) - Vec3d(u[0]);
+
+    Mat3d rhs(rows);
+    //printf("rhs=\n");
+    //rhs.print();
+
+    Mat3d gradM = trans(MInv * rhs);
+    gradM.convertToArray(&grad[9 * field]);
+
+/*
+    // test gradient
+    if (field == 0)
+    {
+      printf("----\n");
+      printf("0: pos: %.15f %.15f %.15f | uExact: %.15f %.15f %.15f\n", vtx[0][0], vtx[0][1], vtx[0][2], u[0][0], u[0][1], u[0][2]);
+      for(int vertex=0; vertex<3; vertex++)
+      {
+        Vec3d u1 = Vec3d(u[vertex+1]);
+        printf("%d: ", vertex+1);
+        printf("pos: %.15f %.15f %.15f | uExact: %.15f %.15f %.15f | ", vtx[vertex+1][0], vtx[vertex+1][1], vtx[vertex+1][2], u1[0], u1[1], u1[2]);
+        Vec3d u1approx = Vec3d(u[0]) + gradM * (vtx[vertex+1] - vtx[0]);
+        printf("uApprox: %.15f %.15f %.15f\n", u1approx[0], u1approx[1], u1approx[2]);
+      }
+      printf("----\n");
+    }
+*/
+  }
+}
+
+
 
 int TetMesh::getNumElementEdges() const
 {

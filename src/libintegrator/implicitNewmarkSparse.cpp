@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "integrator" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC     *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -227,7 +225,7 @@ int ImplicitNewmarkSparse::DoTimestep()
 
     *tangentStiffnessMatrix *= internalForceScalingFactor;
 
-    memset(qresidual,0,sizeof(double)*r);
+    memset(qresidual, 0, sizeof(double) * r);
 
     if (useStaticSolver)
     {
@@ -290,7 +288,7 @@ int ImplicitNewmarkSparse::DoTimestep()
     }
     else
     {
-      // rel error wrt to initial error before performing this iteration
+      // error divided by the initial error, before performing this iteration
       errorQuotient = error / error0; 
     }
 
@@ -303,9 +301,10 @@ int ImplicitNewmarkSparse::DoTimestep()
     RemoveRows(r, bufferConstrained, qdelta, numConstrainedDOFs, constrainedDOFs);
     systemMatrix->AssignSuperMatrix(tangentStiffnessMatrix);
 
-    // solve: systemMatrix * qdelta = qresidual
+    // solve: systemMatrix * buffer = bufferConstrained
 
     PerformanceCounter counterSystemSolveTime;
+    memset(buffer, 0, sizeof(double) * r);
 
     #ifdef SPOOLES
       SPOOLESSolver solver(systemMatrix);
@@ -387,11 +386,11 @@ void ImplicitNewmarkSparse::UseStaticSolver(bool useStaticSolver_)
 
   if (!useStaticSolver) 
   {
-    memset(qvel,0,sizeof(double)*r);
-    memset(qaccel,0,sizeof(double)*r);
-    memset(qvel_1,0,sizeof(double)*r); 
-    memset(qaccel_1,0,sizeof(double)*r);
-    memcpy(q_1, q, sizeof(double)*r);
+    memset(qvel, 0, sizeof(double) * r);
+    memset(qaccel, 0, sizeof(double) * r);
+    memset(qvel_1, 0, sizeof(double) * r); 
+    memset(qaccel_1, 0, sizeof(double) * r);
+    memcpy(q_1, q, sizeof(double) * r);
   }
 } 
 

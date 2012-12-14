@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sceneObject" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC    *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -256,9 +254,9 @@ void SceneObject::ShowPointLabels(int k, int l)
   }
 }
 
-int SceneObject::FindClosestVertex(Vec3d & queryPos, double * distance, double * auxVertexBuffer)
+int SceneObject::GetClosestVertex(Vec3d & queryPos, double * distance, double * auxVertexBuffer)
 {
-  return mesh->findClosestVertex(queryPos, distance);
+  return mesh->getClosestVertex(queryPos, distance);
 }
 
 // highlights vertex i, i=0,1,2,...,n-1

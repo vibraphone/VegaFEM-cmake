@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "massSpringSystem" library, Copyright (C) 2007 CMU, 2009 MIT,         *
  *                                           2012 USC                    *
@@ -15,8 +15,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -35,7 +33,7 @@
 #include "massSpringSystemFromObjMeshConfigFile.h"
 #include <string.h>
 
-char * MassSpringSystemFromObjConfigFile::DuplicateString(char * s)
+char * MassSpringSystemFromObjMeshConfigFile::DuplicateString(char * s)
 {
   // strdup sometimes causes problems, so we use this
   char * p = (char*) malloc (sizeof(char) * (strlen(s) + 1));
@@ -43,7 +41,7 @@ char * MassSpringSystemFromObjConfigFile::DuplicateString(char * s)
   return p;
 }
 
-int MassSpringSystemFromObjConfigFile::GenerateMassSpringSystem(char * configFilename, MassSpringSystem ** massSpringSystem, MassSpringSystemObjMeshConfiguration * massSpringSystemObjConfiguration)
+int MassSpringSystemFromObjMeshConfigFile::GenerateMassSpringSystem(char * configFilename, MassSpringSystem ** massSpringSystem, MassSpringSystemObjMeshConfiguration * massSpringSystemObjConfiguration)
 {
   char massSpringMeshFilename[4096];
   double surfaceDensity, tensileStiffness, shearStiffness, bendStiffness, damping;

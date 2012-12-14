@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -391,7 +389,7 @@ int CubicMesh::normalCorrection(double * vertexData, int numInterpolationLocatio
   return numExternalVertices;
 }
 
-void CubicMesh::interpolateGradient(int element, double * U, int r, Vec3d pos, double * grad) const
+void CubicMesh::interpolateGradient(int element, const double * U, int numFields, Vec3d pos, double * grad) const
 {
   // compute barycentric coordinates
   Vec3d w = pos - *(getVertex(element, 0));
@@ -428,7 +426,7 @@ void CubicMesh::interpolateGradient(int element, double * U, int r, Vec3d pos, d
   Vec3d gradf111(1.0 / cubeSize * beta*gamma, 1.0 / cubeSize * alpha*gamma, 1.0 / cubeSize * alpha*beta);
   Vec3d gradf011(1.0 / cubeSize * -beta*gamma, 1.0 / cubeSize * (1-alpha)*gamma, 1.0 / cubeSize * (1-alpha)*beta);
 
-  for(int j=0; j<r; j++)
+  for(int j=0; j<numFields; j++)
   {
     Vec3d u000 = Vec3d(U[ELT(3*numVertices, 3 * v000 + 0, j)], U[ELT(3*numVertices, 3 * v000 + 1, j)], U[ELT(3*numVertices, 3 * v000 + 2, j)]);
     Vec3d u100 = Vec3d(U[ELT(3*numVertices, 3 * v100 + 0, j)], U[ELT(3*numVertices, 3 * v100 + 1, j)], U[ELT(3*numVertices, 3 * v100 + 2, j)]);
@@ -548,5 +546,109 @@ void CubicMesh::computeElementMassMatrix(int el, double * massMatrix) const
 
   for(int i=0; i<64; i++)
     massMatrix[i] = factor * singleMassMatrix[i];
+}
+
+void CubicMesh::subdivide()
+{
+  int numNewElements = 8 * numElements; 
+  int ** newElements = (int**) malloc (sizeof(int*) * numNewElements);
+
+  int parentMask[8][3] = {
+      { 0, 0, 0 },
+      { 1, 0, 0 },
+      { 1, 1, 0 },
+      { 0, 1, 0 },
+      { 0, 0, 1 },
+      { 1, 0, 1 },
+      { 1, 1, 1 },
+      { 0, 1, 1 } };
+  
+  int mask[8][8][3];
+  for(int el=0; el<8; el++)
+    for(int vtx=0; vtx<8; vtx++)
+      for(int dim=0; dim<3; dim++)
+      {
+        mask[el][vtx][dim] = parentMask[el][dim] + parentMask[vtx][dim];
+        //printf("%d\n", mask[el][vtx][dim]);
+      }
+
+  vector<Vec3d> newVertices;
+  for(int el=0; el<numElements; el++)
+  {
+    Vec3d * v0 = getVertex(el, 0);   
+
+    // create the 8 children cubes
+    for(int child=0; child<8; child++)
+    {
+      newElements[8 * el + child] = (int*) malloc (sizeof(int) * 8);
+
+      int childVtx[8];
+      for(int vtx=0; vtx<8; vtx++)
+      {
+        Vec3d pos = (*v0) + 0.5 * cubeSize * Vec3d(mask[child][vtx][0], mask[child][vtx][1], mask[child][vtx][2]);
+        //printf("%G %G %G\n", pos[0], pos[1], pos[2]);
+        // search for vertex
+        int found = -1;
+        for(int i=0; i<(int)newVertices.size(); i++)
+        {
+          if (len(pos - newVertices[i]) < 0.25 * cubeSize)
+          {
+            found = i;
+            break;
+          }
+        }
+
+        if (found == -1)
+        {
+          // new vertex
+          newVertices.push_back(pos);
+          found = (int)newVertices.size() - 1;
+        }
+
+        childVtx[vtx] = found;
+        newElements[8 * el + child][vtx] = childVtx[vtx];
+      }
+    }
+  }
+
+  cubeSize *= 0.5;
+
+  // deallocate old vertices
+  for(int i=0; i<numVertices; i++)
+    delete(vertices[i]);
+  free(vertices);
+
+  // copy new vertices into place
+  numVertices = (int)newVertices.size();
+  vertices = (Vec3d**) malloc (sizeof(Vec3d*) * numVertices);
+  for(int i=0; i<numVertices; i++)
+    vertices[i] = new Vec3d(newVertices[i]);
+
+  // deallocate old elements
+  for(int i=0; i<numElements; i++)
+    free(elements[i]);
+  free(elements);
+
+  // copy new elements into place
+  numElements = numNewElements;
+  elements = newElements;
+
+  // update sets (expand each entry in each set into 8 new entries)
+  for(int setIndex=0; setIndex<numSets; setIndex++)
+  {
+    set<int> oldElements;
+    sets[setIndex]->getElements(oldElements);
+    Set * newSet = new Set(sets[setIndex]->getName());
+    for(set<int> :: iterator iter = oldElements.begin(); iter != oldElements.end(); iter++)
+    {
+      for(int i=0; i<8; i++)
+        newSet->insert(8 * (*iter-1) + i + 1);
+    }
+
+    delete(sets[setIndex]);
+    sets[setIndex] = newSet;
+  }
+
+  PropagateRegionsToElements();
 }
 

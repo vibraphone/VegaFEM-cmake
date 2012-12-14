@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
- * "obj" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC            *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -15,8 +15,6 @@
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
  *                                                                       *
- * Version 3.0                                                           *
- *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
  * included with this library in the file LICENSE.txt                    *
@@ -28,7 +26,7 @@
  *                                                                       *
  *************************************************************************/
 
-// Renders the obj
+// Renders the obj mesh.
 // Written by Daniel Schroeder and Jernej Barbic, 2011
 
 #ifndef _OBJMESHRENDER_H_
@@ -75,19 +73,19 @@ public:
   class Texture
   {
   public:
-    Texture() : texture_(std::make_pair(false, 0)), textureMode_(OBJMESHRENDER_GL_NOMIPMAP | OBJMESHRENDER_GL_MODULATE) {}
-    virtual ~Texture() { if(texture_.first) glDeleteTextures(1, &(texture_.second)); }
+    Texture() : texture(std::make_pair(false, 0)), textureMode(OBJMESHRENDER_GL_NOMIPMAP | OBJMESHRENDER_GL_MODULATE) {}
+    virtual ~Texture() { if(texture.first) glDeleteTextures(1, &(texture.second)); }
 
     void loadTexture(std::string fullPath, int textureMode);
 
-    bool hasTexture() { return texture_.first; }
-    unsigned int texture() { assert( texture_.first ); return texture_.second; }
+    bool hasTexture() { return texture.first; }
+    unsigned int getTexture() { assert( texture.first ); return texture.second; }
 
-    int textureMode() { return textureMode_; }
+    int getTextureMode() { return textureMode; }
 
   protected:
-    std::pair< bool, unsigned int > texture_; //OpenGL texture ID
-    int textureMode_;
+    std::pair< bool, unsigned int > texture; // OpenGL texture ID
+    int textureMode;
   };
 
   ObjMeshRender(ObjMesh * mesh);
@@ -103,14 +101,15 @@ public:
   void renderSpecifiedVertices(int * specifiedVertices, int numSpecifiedVertices);
   void renderVertex(int index);
 
-  //the hackier, more specific ones for various specific SceneObject functions
+  // the hackier, more specific ones for various specific SceneObject functions
   void renderGroupEdges(char * groupName);
 
   int numTextures();
+  Texture * getTextureHandle(int textureIndex);
   void loadTextures(int textureMode);
 
   // loads an image from a PPM file; returns the pixels, in bottom-to-top order, and image width and height
-  static unsigned char * loadPPM(std::string filename, int * width, int * height); //must be P6 type
+  static unsigned char * loadPPM(std::string filename, int * width, int * height); // must be P6 type
 
   void renderNormals(double normalLength);
 

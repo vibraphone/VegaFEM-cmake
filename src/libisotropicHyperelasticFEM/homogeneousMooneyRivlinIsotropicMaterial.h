@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -34,16 +32,22 @@
 #include "isotropicMaterial.h"
 
 /*
-   Homogeneous Mooney-Rivlin material. Material properties are constant throughout the mesh.
+  The implemented compressible Mooney-Rivlin material has the following energy function:
 
-   The implemented Mooney-Rivlin material is described in:
-   BONET J., WOOD R. D.: Nonlinear Continuum Mechanics
-   for Finite Element Analysis, 2nd Ed. Cambridge University
-   Press, 2008, page 170
+  energy = 0.5 * mu01 * ((Ic^2 - IIc) / pow(IIIc, 2/3) - 6) +
+                 mu10 * (Ic / pow(IIIc, 1/3) - 3) +
+                 v1 * (sqrt(IIIc) - 1)^2
 
-   energy = 0.5 * (-6.0 + (Ic * Ic - IIc) / pow(IIIc, 2.0 / 3.0)) * mu01 +
-                  (-3.0 + Ic / pow(IIIc, 1.0 / 3.0)) * mu10 +
-                  pow(-1.0 + sqrt(IIIc), 2.0) * v1;
+  This is a standard adaption of the material presented in:
+
+  R. S. Rivlin and D. W. Saunders: 
+  Large elastic deformations of isotropic materials VII. 
+  Experiments on the deformation of rubber. 
+  Philosophical Transactions Royal Society London Series A, 
+  243(865), 1951, pp. 251-288.
+
+  See the Wikipedia page, "Polynomial_(hyperelastic_model)".
+  A snapshot of the Wikipedia page is included in this folder.
 */
 
 class HomogeneousMooneyRivlinIsotropicMaterial : public IsotropicMaterial

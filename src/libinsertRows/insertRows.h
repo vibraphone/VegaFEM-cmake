@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "insertRows" library , Copyright (C) 2007 CMU, 2009 MIT               *
  * All rights reserved.                                                  *
@@ -9,7 +9,6 @@
  * http://www.jernejbarbic.com/code                                      *
  * Research: Jernej Barbic, Doug L. James, Jovan Popovic                 *
  * Funding: NSF, Link Foundation, Singapore-MIT GAMBIT Game Lab          *
- * Version 2.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *

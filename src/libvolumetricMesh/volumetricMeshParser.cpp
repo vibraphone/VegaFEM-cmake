@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -87,7 +85,7 @@ int VolumetricMeshParser::open(char * filename)
   }
 
   // now, directoryName has been extracted
-  fin = fopen(filename,"r");
+  fin = fopen(filename, "r");
   if (!fin)
     return 1;
 
@@ -178,11 +176,11 @@ char * VolumetricMeshParser::getNextLine(char * s, int numRetainedSpaces, int re
     char newFileCompleteName[4096];
     sprintf(newFileCompleteName,"%s/%s",directoryName,newFile);
 
-    FILE * finNew = fopen(newFileCompleteName,"ra");
+    FILE * finNew = fopen(newFileCompleteName, "r");
 
     if (!finNew)
     {
-      printf("Error: couldn't open include file %s.\n",newFileCompleteName);
+      printf("Error: couldn't open include file %s.\n", newFileCompleteName);
       exit(1);
     }
 

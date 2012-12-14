@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
- * "obj" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC            *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -144,6 +142,11 @@ public:
       inline double getShininess() const { return shininess; }
       inline double getAlpha() const { return alpha; }
 
+      inline void setName(const std::string & name_) { name = name_; }
+      inline void setKa(Vec3d & Ka_) { Ka = Ka_; }
+      inline void setKd(Vec3d & Kd_) { Kd = Kd_; }
+      inline void setKs(Vec3d & Ks_) { Ks = Ks_; }
+      inline void setShininess(double shininess_) { shininess = shininess_; }
       inline void setAlpha(double alpha_) { alpha = alpha_; }
 
       inline bool hasTextureFilename() const { return (textureFilename.size() > 0); }
@@ -198,6 +201,7 @@ public:
       inline Face getFace(unsigned int face) const { return faces[face]; }
       inline const Face * getFaceHandle(unsigned int face) const { return &(faces[face]); }
       inline std::string getName() const { return name; }
+      void setName(const std::string & name_) { name = name_; }
       inline unsigned int getMaterialIndex() const { return materialIndex; }
       inline void setMaterialIndex(unsigned int materialIndex_) { materialIndex = materialIndex_; }
 
@@ -264,6 +268,7 @@ public:
   inline Material getMaterial(unsigned int materialIndex) const { return materials[materialIndex]; }
   inline const Material * getMaterialHandle(unsigned int materialIndex) { return &materials[materialIndex]; }
   void setMaterialAlpha(double alpha);
+  void setSingleMaterial(const Material & material); // erases all materials and sets a single material for the entire mesh
 
   // ======= member data adders =======
 
@@ -297,6 +302,12 @@ public:
 
   void initSurfaceSampling();
   Vec3d getSurfaceSamplePosition(double sample) const; // sample should be between 0 and 1; must call "initSurfaceSampling" first
+
+  // allows one to query the vertex indices of each triangle
+  // order of triangles is same as in "exportGeometry": for every group, traverse all faces, and tesselate each face into triangles 
+  void initTriangleLookup(); // call this first
+  void clearTriangleLookup();
+  void getTriangle(int triangleIndex, int * vtxA, int * vtxB, int * vtxC); // must call "initTriangleLookup" first
 
   // ======= geometric queries =======
 
@@ -356,7 +367,7 @@ public:
   void computeMassPerVertex(const std::vector<double> & groupSurfaceMassDensities, std::vector<double> & masses) const;
 
   // finds the closest mesh vertex to the query position queryPos (using exhaustive search); also outputs distance to such a vertex (if distance is not NULL)
-  unsigned int findClosestVertex(const Vec3d & queryPos, double * distance=NULL) const;
+  unsigned int getClosestVertex(const Vec3d & queryPos, double * distance=NULL) const;
 
   void computeCentroids(std::vector<Vec3d> & centroids) const; // centroids of all the faces
   void interpolateToCentroids(const std::vector<double> & nodalData, std::vector<double> & centroidData) const; // interpolates vertex data to centroids
@@ -438,6 +449,8 @@ protected:
 
   std::vector<double> surfaceAreaPerVertex;
   std::vector<Vec3d> pseudoNormals;
+
+  std::vector<int> triangles; // for triangle vertex lookup
        
   // index assumes that the first int is smaller than the second
   std::map< std::pair<unsigned int,unsigned int>, Vec3d > edgePseudoNormals;

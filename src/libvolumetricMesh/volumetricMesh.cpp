@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -549,6 +547,7 @@ VolumetricMesh::VolumetricMesh(int numVertices_, double * vertices_,
 
   vertices = (Vec3d**) malloc (sizeof(Vec3d*) * numVertices);
   elements = (int**) malloc (sizeof(int*) * numElements);
+  elementMaterial = (int*) malloc (sizeof(int) * numElements);
   materials = (Material**) malloc (sizeof(Material*) * numMaterials);
   sets = (Set**) malloc (sizeof(Set*) * numSets);
   regions = (Region**) malloc (sizeof(Region*) * numRegions);
@@ -643,7 +642,7 @@ VolumetricMesh::~VolumetricMesh()
 
 int VolumetricMesh::save(char * filename, elementType elementType_) const // saves the mesh to a .veg file
 {       
-  FILE * fout = fopen(filename,"wa");
+  FILE * fout = fopen(filename, "w");
   if (!fout)
   {       
     printf("Error: could not write to %s.\n",filename);
@@ -807,6 +806,26 @@ VolumetricMesh::elementType VolumetricMesh::getElementType(char * filename)
     printf("Error: could not determine the mesh type in file %s. File may not be in .veg format.\n", filename);
 
   return elementType_;
+}
+
+double VolumetricMesh::getVolume() const
+{
+  double vol = 0.0;
+  for(int el=0; el<numElements; el++)
+    vol += getElementVolume(el);
+  return vol;
+}
+
+void VolumetricMesh::getVertexVolumes(double * vertexVolumes) const
+{
+  memset(vertexVolumes, 0, sizeof(double) * numVertices);
+  double factor = 1.0 / numElementVertices;
+  for(int el=0; el<numElements; el++)
+  {
+    double volume = getElementVolume(el);
+    for(int j=0; j<numElementVertices; j++)
+      vertexVolumes[getVertexIndex(el, j)] += factor * volume;
+  }
 }
 
 Vec3d VolumetricMesh::getElementCenter(int el) const
@@ -1001,15 +1020,15 @@ void VolumetricMesh::setSingleMaterial(double E, double nu, double density)
 {
   // erase previous materials
   for(int i=0; i<numMaterials; i++)
-    free(materials[i]);
+    delete(materials[i]);
   free(materials);
 
   for(int i=0; i<numSets; i++)
-    free(sets[i]);
+    delete(sets[i]);
   free(sets);
 
   for(int i=0; i<numRegions; i++)
-    free(regions[i]);
+    delete(regions[i]);
   free(regions);
 
   // add a single material
@@ -1034,6 +1053,13 @@ void VolumetricMesh::setSingleMaterial(double E, double nu, double density)
 
   Region * region = new Region(0, 0);
   regions[0] = region;
+}
+
+void VolumetricMesh::getDefaultMaterial(double * E, double * nu, double * density)
+{
+  *E = E_default;
+  *nu = nu_default;
+  *density = density_default;
 }
 
 void VolumetricMesh::PropagateRegionsToElements()
@@ -1133,7 +1159,7 @@ int VolumetricMesh::generateInterpolationWeights(int numTargetLocations,
 
 int VolumetricMesh::getNumInterpolationElementVertices(char * filename)
 {
-  FILE * fin = fopen(filename, "ra");
+  FILE * fin = fopen(filename, "r");
   if (!fin)
   {
     printf("Error: unable to open file %s.\n", filename);
@@ -1167,7 +1193,7 @@ int VolumetricMesh::getNumInterpolationElementVertices(char * filename)
 
 int VolumetricMesh::loadInterpolationWeights(char * filename, int numTargetLocations, int numElementVertices_, int ** vertices_, double ** weights)
 {
-  FILE * fin = fopen(filename, "ra");
+  FILE * fin = fopen(filename, "r");
   if (!fin)
   {
     printf("Error: unable to open file %s.\n", filename);
@@ -1222,7 +1248,7 @@ int VolumetricMesh::loadInterpolationWeights(char * filename, int numTargetLocat
 
 int VolumetricMesh::saveInterpolationWeights(char * filename, int numTargetLocations, int numElementVertices_, int * vertices_, double * weights)
 {
-  FILE * fin = fopen(filename, "wa");
+  FILE * fin = fopen(filename, "w");
   if (!fin)
   {
     printf("Error: unable to open file %s.\n", filename);
@@ -1263,6 +1289,23 @@ void VolumetricMesh::interpolate(double * u, double * uTarget,
     uTarget[3*i+2] = defo[2];
   }
 }
+
+int VolumetricMesh::interpolateGradient(const double * U, int numFields, Vec3d pos, double * grad) const
+{
+  // find the element containing "pos"
+  int externalVertex = 0;
+  int element = getContainingElement(pos);
+  if (element < 0)
+  {
+    element = getClosestElement(pos);
+    externalVertex = 1;
+  }
+
+  interpolateGradient(element, U, numFields, pos, grad);
+
+  return externalVertex;
+}
+
 
 void VolumetricMesh::exportMeshGeometry(int * numVertices_, double ** vertices_, int * numElements_, int * numElementVertices_, int ** elements_) const
 {
@@ -1501,7 +1544,8 @@ VolumetricMesh::VolumetricMesh(const VolumetricMesh & volumetricMesh, int numEle
   }
 }
 
-void VolumetricMesh::setToSubsetMesh(std::set<int> & subsetElements, int removeIsolatedVertices)
+// if vertexMap is non-null, it also returns a renaming datastructure: vertexMap[big mesh vertex] is the vertex index in the subset mesh
+void VolumetricMesh::setToSubsetMesh(std::set<int> & subsetElements, int removeIsolatedVertices, std::map<int,int> * vertexMap)
 {
   int numRemovedElements = 0;
   for(int el=0; el<numElements; el++)
@@ -1552,11 +1596,15 @@ void VolumetricMesh::setToSubsetMesh(std::set<int> & subsetElements, int removeI
     int tail = 0;
   
     int * renamingFunction = (int*) malloc (sizeof(int) * numVertices);
+    if (vertexMap != NULL)
+      vertexMap->clear();
     while (tail < numVertices)
     {
       if (vertices[tail] != NULL)
       {
         renamingFunction[tail] = head;
+        if (vertexMap != NULL)
+          vertexMap->insert(make_pair(tail, head));
         vertices[head] = vertices[tail];
         head++;
       }
@@ -1579,7 +1627,7 @@ int VolumetricMesh::exportToEle(char * baseFilename, int includeRegions) const
   char s[1024];
   sprintf(s, "%s.ele", baseFilename);
 
-  FILE * fout = fopen(s,"wa");
+  FILE * fout = fopen(s, "w");
   if (!fout)
   {       
     printf("Error: could not write to %s.\n",s);
@@ -1642,7 +1690,7 @@ int VolumetricMesh::exportToEle(char * baseFilename, int includeRegions) const
 
   sprintf(s, "%s.node", baseFilename);
 
-  fout = fopen(s,"wa");
+  fout = fopen(s, "w");
   if (!fout)
   {       
     printf("Error: could not write to %s.\n",s);

@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -96,10 +94,10 @@ bool FaceOrder::operator()(const TopologicalFaceI & x, const TopologicalFaceI & 
 ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, bool triangulateOutputMesh)
 {
   // create an empty surface mesh
-  ObjMesh * objfile = new ObjMesh();
+  ObjMesh * objMesh = new ObjMesh();
 
   // create default group
-  objfile->addGroup("Default");
+  objMesh->addGroup("Default");
 
   // add all vertices
   for(int i=0; i<mesh->getNumVertices(); i++)
@@ -109,7 +107,7 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, bool triangula
     pos[0] = posm[0]; 
     pos[1] = posm[1]; 
     pos[2] = posm[2];
-    objfile->addVertexPosition(pos);
+    objMesh->addVertexPosition(pos);
   }
 
   set<TopologicalFaceI,FaceOrder> surfaceFaces;
@@ -239,15 +237,15 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, bool triangula
       newFace2.addVertex( ObjMesh::Vertex( index[3], texPos, normal ) );
       newFace2.addVertex( ObjMesh::Vertex( index[0], texPos, normal ) );
  
-      objfile->addFaceToGroup(newFace1,0);
-      objfile->addFaceToGroup(newFace2,0);
+      objMesh->addFaceToGroup(newFace1,0);
+      objMesh->addFaceToGroup(newFace2,0);
     }
     else
     {
       ObjMesh::Face newFace1;
       for(int i=0; i<faceDegree; i++)
         newFace1.addVertex( ObjMesh::Vertex( index[i], texPos, normal ) );
-      objfile->addFaceToGroup(newFace1, 0);
+      objMesh->addFaceToGroup(newFace1, 0);
     }
   }
 
@@ -256,16 +254,18 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, bool triangula
   if (mesh->getElementType() == CubicMesh::elementType())
   {
     // cubic mesh
-    objfile->setNormalsToFaceNormals();
+    objMesh->setNormalsToFaceNormals();
   }
   else
   {
     // other types of meshes (e.g., tet)
-    objfile->computePseudoNormals();
-    objfile->setNormalsToPseudoNormals();
+    objMesh->computePseudoNormals();
+    objMesh->setNormalsToPseudoNormals();
   }
 
-  return objfile;
+  objMesh->setSingleMaterial(ObjMesh::Material());
+
+  return objMesh;
 }
 
 // advanced routine, not used very often
@@ -277,7 +277,7 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, ObjMesh * supe
   {
     Vec3d pos = *(mesh->getVertex(i));
     double dist;
-    closestObjVertex[i] = superMesh->findClosestVertex(pos, &dist);
+    closestObjVertex[i] = superMesh->getClosestVertex(pos, &dist);
   }
 
   // build the list of triangles
@@ -300,10 +300,10 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, ObjMesh * supe
   }
 
   // create empty surface mesh
-  ObjMesh * objfile = new ObjMesh();
+  ObjMesh * objMesh = new ObjMesh();
 
   // create default group
-  objfile->addGroup("Default");
+  objMesh->addGroup("Default");
 
   // add all vertices
   for(int i=0; i<mesh->getNumVertices(); i++)
@@ -313,7 +313,7 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, ObjMesh * supe
     pos[0] = posm[0]; 
     pos[1] = posm[1]; 
     pos[2] = posm[2];
-    objfile->addVertexPosition(pos);
+    objMesh->addVertexPosition(pos);
   }
 
   set<TopologicalFaceI,FaceOrder> surfaceFaces;
@@ -457,15 +457,15 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, ObjMesh * supe
       newFace2.addVertex( ObjMesh::Vertex( index[3], texPos, normal ) );
       newFace2.addVertex( ObjMesh::Vertex( index[0], texPos, normal ) );
  
-      objfile->addFaceToGroup(newFace1,0);
-      objfile->addFaceToGroup(newFace2,0);
+      objMesh->addFaceToGroup(newFace1,0);
+      objMesh->addFaceToGroup(newFace2,0);
     }
     else
     {
       ObjMesh::Face newFace1;
       for(int i=0; i<faceDegree; i++)
         newFace1.addVertex( ObjMesh::Vertex( index[i], texPos, normal ) );
-      objfile->addFaceToGroup(newFace1, 0);
+      objMesh->addFaceToGroup(newFace1, 0);
     }
   }
 
@@ -474,17 +474,19 @@ ObjMesh * GenerateSurfaceMesh::ComputeMesh(VolumetricMesh * mesh, ObjMesh * supe
   if (mesh->getElementType() == CubicMesh::elementType())
   {
     // cubic mesh
-    objfile->setNormalsToFaceNormals();
+    objMesh->setNormalsToFaceNormals();
   }
   else
   {
     // other types of meshes (e.g., tet)
-    objfile->computePseudoNormals();
-    objfile->setNormalsToPseudoNormals();
+    objMesh->computePseudoNormals();
+    objMesh->setNormalsToPseudoNormals();
   }
 
   free(closestObjVertex);
-  return objfile;
-}
 
+  objMesh->setSingleMaterial(ObjMesh::Material());
+
+  return objMesh;
+}
 

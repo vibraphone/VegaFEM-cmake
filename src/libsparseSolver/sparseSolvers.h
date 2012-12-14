@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -15,8 +15,6 @@
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
  *                                                                       *
- * Version 3.0                                                           *
- *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
  * included with this library in the file LICENSE.txt                    *
@@ -28,8 +26,8 @@
  *                                                                       *
  *************************************************************************/
 
-#ifndef _SPARSE_SOLVERS_H
-#define _SPARSE_SOLVERS_H
+#ifndef _SPARSESOLVERS_H_
+#define _SPARSESOLVERS_H_
 
 #include "PardisoSolver.h"
 #include "SPOOLESSolver.h"

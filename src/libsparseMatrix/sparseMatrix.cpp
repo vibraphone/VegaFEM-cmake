@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.0                               *
+ * Vega FEM Simulation Library Version 1.1                               *
  *                                                                       *
  * "sparseMatrix" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
  * All rights reserved.                                                  *
@@ -14,8 +14,6 @@
  * Funding: National Science Foundation, Link Foundation,                *
  *          Singapore-MIT GAMBIT Game Lab,                               *
  *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * Version 3.0                                                           *
  *                                                                       *
  * This library is free software; you can redistribute it and/or         *
  * modify it under the terms of the BSD-style license that is            *
@@ -402,6 +400,16 @@ SparseMatrix::SparseMatrix(const SparseMatrix & source)
   }
 }
 
+void SparseMatrix::MultiplyVector(int startRow, int endRow, const double * vector, double * result) const // result = A(startRow:endRow-1,:) * vector
+{
+  for(int i=startRow; i<endRow; i++)
+  {
+    result[i-startRow] = 0;
+    for(int j=0; j < rowLength[i]; j++)
+      result[i-startRow] += vector[columnIndices[i][j]] * columnEntries[i][j];
+  }
+}
+
 void SparseMatrix::MultiplyVector(const double * vector, double * result) const
 {
   for(int i=0; i<numRows; i++)
@@ -419,7 +427,7 @@ void SparseMatrix::MultiplyVectorAdd(const double * vector, double * result) con
       result[i] += vector[columnIndices[i][j]] * columnEntries[i][j];
 }
 
-void SparseMatrix::TransposeMultiplyVector(const double * vector, double * result, int resultLength) const
+void SparseMatrix::TransposeMultiplyVector(const double * vector, int resultLength, double * result) const
 {
   for(int i=0; i<resultLength; i++)
     result[i] = 0;
@@ -440,16 +448,27 @@ void SparseMatrix::TransposeMultiplyVectorAdd(const double * vector, double * re
   }
 }
 
-void SparseMatrix::MultiplyMatrix(int numRows, int numColumns, const double * denseMatrix, double * result) const
+void SparseMatrix::MultiplyMatrix(int numDenseRows, int numDenseColumns, const double * denseMatrix, double * result) const
 {
-  for(int column=0; column<numColumns; column++)
-    MultiplyVector(&denseMatrix[numRows * column], &result[numRows * column]);
+  for(int column=0; column<numDenseColumns; column++)
+    MultiplyVector(&denseMatrix[numDenseRows * column], &result[numRows * column]);
 }
 
-void SparseMatrix::MultiplyMatrixAdd(const double * denseMatrix, int numColumns, double * result) const
+void SparseMatrix::MultiplyMatrixAdd(int numDenseRows, int numDenseColumns, const double * denseMatrix, double * result) const
 {
-  for(int column=0; column<numColumns; column++)
-    MultiplyVectorAdd(&denseMatrix[numRows * column], &result[numRows * column]);
+  for(int column=0; column<numDenseColumns; column++)
+    MultiplyVectorAdd(&denseMatrix[numDenseRows * column], &result[numRows * column]);
+}
+
+// result = A * trans(denseMatrix) 
+// trans(denseMatrix) is a dense matrix with 'numDenseColumns' columns, result is a numRows x numDenseColumns dense matrix
+void SparseMatrix::MultiplyMatrixTranspose(int numDenseColumns, const double * denseMatrix, double * result) const
+{
+  memset(result, 0, sizeof(double) * numRows * numDenseColumns);
+  for(int column=0; column<numDenseColumns; column++)
+    for(int i=0; i<numRows; i++)
+      for(int j=0; j < rowLength[i]; j++)
+        result[numRows * column + i] += denseMatrix[numDenseColumns * columnIndices[i][j] + column] * columnEntries[i][j];
 }
 
 double SparseMatrix::QuadraticForm(const double * vector) const
@@ -1394,6 +1413,16 @@ void SparseMatrix::RemoveColumns(int numRemovedColumns, int * removedColumns, in
   // the removed dofs must be pre-sorted
   // build a map from old dofs to new ones
   int numColumns = GetNumColumns();
+
+  // must increase numColumns to accommodate matrices with zero columns on the right
+  for(int i=0; i<numRemovedColumns; i++)
+  {
+    int removedColumn0Indexed = removedColumns[i] - oneIndexed;
+    int neededNumColumns = removedColumn0Indexed + 1;
+    if (neededNumColumns > numColumns)
+      numColumns = neededNumColumns;
+  }
+
   vector<int> oldToNew(numColumns);
   int dof = 0;
   int dofCount = 0;
@@ -1596,9 +1625,19 @@ void SparseMatrix::MakeDenseMatrix(double * denseMatrix) const
   memset(denseMatrix, 0, sizeof(double) * (numRows * GetNumColumns()));
   for(int i=0; i< numRows; i++)
     for(int j=0; j<rowLength[i]; j++)
-    {
       denseMatrix[numRows * columnIndices[i][j] + i] = columnEntries[i][j];
-    }
+}
+
+void SparseMatrix::MakeDenseMatrixTranspose(int numColumns, double * denseMatrix) const
+{
+  // note: we cannot use GetNumColumns() here because the rightmost columns of the sparse matrix can be zero and the GetNumColumns() will not be accurate
+  memset(denseMatrix, 0, sizeof(double) * (numRows * numColumns));
+  for(int i=0; i<numRows; i++)
+  {
+    int offset = i * numColumns;
+    for(int j=0; j<rowLength[i]; j++)
+      denseMatrix[offset + columnIndices[i][j]] = columnEntries[i][j];
+  }
 }
 
 void SparseMatrix::MultiplyRow(int row, double scalar) // multiplies all elements in row 'row' with scalar 'scalar'
@@ -1779,7 +1818,7 @@ void SparseMatrix::ConjugateMatrix(double * U, int r, double * UTilde)
   free(MU);
 }
 
-SparseMatrix SparseMatrix::Transpose(int numColumns)
+SparseMatrix * SparseMatrix::Transpose(int numColumns)
 {
   if (numColumns < 0)
     numColumns = GetNumColumns();
@@ -1790,7 +1829,7 @@ SparseMatrix SparseMatrix::Transpose(int numColumns)
     for(int j=0; j<rowLength[i]; j++)
       outline.AddEntry(columnIndices[i][j], i, columnEntries[i][j]);
  
-  return SparseMatrix(&outline);;
+  return new SparseMatrix(&outline);;
 }
 
 void SparseMatrix::SetRows(SparseMatrix * source, int startRow, int startColumn) 
@@ -1810,6 +1849,63 @@ void SparseMatrix::SetRows(SparseMatrix * source, int startRow, int startColumn)
       columnEntries[row][j] = source->columnEntries[i][j];
     }
   }
+}
+
+void SparseMatrix::AppendRowsColumns(SparseMatrix * source)
+{
+  int * oldRowLengths = (int*) malloc (sizeof(int) * numRows);
+  for(int i=0; i<numRows; i++)
+    oldRowLengths[i] = rowLength[i];
+
+  int oldNumRows = numRows;
+  IncreaseNumRows(source->GetNumRows());
+  SetRows(source, oldNumRows);
+
+  // add transpose of rows:
+
+  // first, establish new column lengths
+  for(int row=0; row<source->GetNumRows(); row++)
+  {
+    for(int j=0; j<source->GetRowLength(row); j++)
+    {
+      int column = source->GetColumnIndex(row, j);
+      rowLength[column]++;
+    }
+  }
+
+  // extend size
+  for(int row=0; row<oldNumRows; row++)
+  {
+    columnIndices[row] = (int*) realloc (columnIndices[row], sizeof(int) * rowLength[row]);
+    columnEntries[row] = (double*) realloc (columnEntries[row], sizeof(double) * rowLength[row]);
+  }
+
+  // write entries into their place
+  for(int i=0; i<oldNumRows; i++)
+    rowLength[i] = oldRowLengths[i];
+
+  for(int row=0; row<source->GetNumRows(); row++)
+  {
+    for(int j=0; j<source->GetRowLength(row); j++)
+    {
+      int column = source->GetColumnIndex(row, j);
+      columnIndices[column][rowLength[column]] = oldNumRows + row;
+      columnEntries[column][rowLength[column]] = source->GetEntry(row, j);
+      rowLength[column]++;
+    }
+  }
+
+  free(oldRowLengths);
+
+  // append zero diagonal in lower-right block (helps with some solvers)
+  for(int row=0; row<source->GetNumRows(); row++)
+  {
+    rowLength[oldNumRows + row]++;
+    columnIndices[oldNumRows + row] = (int*) realloc (columnIndices[oldNumRows + row], sizeof(int) * rowLength[oldNumRows + row]);
+    columnEntries[oldNumRows + row] = (double*) realloc (columnEntries[oldNumRows + row], sizeof(double) * rowLength[oldNumRows + row]);
+    columnIndices[oldNumRows + row][rowLength[oldNumRows + row] - 1] = oldNumRows + row;
+    columnEntries[oldNumRows + row][rowLength[oldNumRows + row] - 1] = 0.0;
+  }  
 }
 
 SparseMatrix * SparseMatrix::CreateIdentityMatrix(int numRows)
