@@ -23,3 +23,4 @@ add_subdirectory(libelasticForceModel)
 add_subdirectory(libintegrator)
 
 add_subdirectory(util/interactiveDeformableSimulator)
+add_subdirectory(util/volumetricMeshUtilities)

@@ -3,6 +3,7 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
    ${CMAKE_SOURCE_DIR}/include
+   ${OPENGL_INCLUDE_DIR}
 )
 
 set(OBJ_SRCS
@@ -13,4 +14,4 @@ set(OBJ_SRCS
 )
 
 add_library(objMesh SHARED ${OBJ_SRCS})
-target_link_libraries(objMesh minivector matrix)
+target_link_libraries(objMesh minivector matrix ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})

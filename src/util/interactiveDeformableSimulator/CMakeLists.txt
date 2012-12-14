@@ -24,6 +24,7 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libstvk
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libvolumetricMesh
    ${CMAKE_SOURCE_DIR}/include
+   ${OPENGL_INCLUDE_DIR}
 )
 
 add_executable(deformsim interactiveDeformableSimulator.cpp initGraphics.cpp)
