@@ -122,6 +122,14 @@ find_package(OpenGL)
 find_package(GLUT)
 find_package(GLUI)
 
+# OpenGL is used in many places in the code, so
+# just include the necessary directories here.
+include_directories(
+  ${OPENGL_INCLUDE_DIR}
+  ${GLUT_INCLUDE_DIR}
+  ${GLUI_INCLUDE_DIR}
+  )
+
 add_subdirectory(src)
 
 # Local Variables:

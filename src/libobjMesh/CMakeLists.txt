@@ -3,7 +3,6 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
    ${CMAKE_SOURCE_DIR}/include
-   ${OPENGL_INCLUDE_DIR}
 )
 
 set(OBJ_SRCS

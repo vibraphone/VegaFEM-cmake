@@ -8,7 +8,6 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libsparseMatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libvolumetricMesh
    ${CMAKE_CURRENT_SOURCE_DIR}/include
-   ${OPENGL_INCLUDE_DIR}
 )
 
 set(VOLUTILS_LIBS volumetricMesh objMesh matrix getopts loadList sparseMatrix)
