@@ -1,0 +1,42 @@
+                           VegaFEM Library
+                             Version 1.0
+                       http://run.usc.edu/vega/
+
+Vega is a computationally efficient and stable C/C++ physics library for
+three-dimensional deformable object simulation. It is designed to model large
+deformations, including geometric and material nonlinearities, and can also
+efficiently simulate linear systems. Vega is open-source and free. It is
+released under the 3-clause BSD license, which means that it can be used both
+in academic research and in commercial applications.
+
+Vega implements several widely used methods for simulation of large
+deformations of 3D solid deformable objects:
+
+  * co-rotational linear FEM elasticity [MG04]; it can also compute the exact
+    tangent stiffness matrix [Bar12] (similar to [CPSS10]), 
+  * linear FEM elasticity [Sha90], 
+  * invertible isotropic nonlinear FEM models [ITF04, TSIF05],
+  * Saint-Venant Kirchhoff FEM deformable models (see [Bar07]), and 
+  * mass-spring systems.
+
+For any 3D tetrahedral or cubic mesh, Vega can compute both internal elastic
+forces and their gradients (tangent stiffness matrix), in any deformed
+configuration. Different parts of the mesh can be assigned arbitrary material
+properties. Vega can also timestep these models in time under any
+user-specified forces, using several provided integrators: implicit backward
+Euler [BW98], implicit Newmark [Wri02], explicit central differences [Wri02]
+and symplectic Euler. All models include support for multi-core computing. In
+addition to linear materials, Vega provides neo-Hookean and Mooney-Rivlin
+nonlinear material models; arbitrary nonlinear material models can be added to
+Vega. For isotropic hyperelastic materials, this is as easy as defining an
+energy function, and its first and second derivatives.
+
+Vega is a middleware physics library. It is aimed at researchers and engineers
+with some preexisting knowledge in numerical simulation, computer graphics
+and/or solid mechanics, who can integrate Vega into their projects. The
+strength of Vega lies in its many C/C++ libraries which depend minimally on
+each other, and are in most cases independently reusable. Vega contains about
+50,000 lines of C/C++ code.
+
+Most of Vega was written by Jernej Barbič. Other code contributors include Fun
+Shing Sin, Daniel Schroeder and Christopher Twigg.
