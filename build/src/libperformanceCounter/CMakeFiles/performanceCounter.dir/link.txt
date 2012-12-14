@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC    -shared -Wl,-soname,libperformanceCounter.so -o ../../lib/libperformanceCounter.so CMakeFiles/performanceCounter.dir/performanceCounter.cpp.o 

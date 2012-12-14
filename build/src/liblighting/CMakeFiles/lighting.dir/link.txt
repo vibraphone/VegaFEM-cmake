@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC    -shared -Wl,-soname,liblighting.so -o ../../lib/liblighting.so CMakeFiles/lighting.dir/lighting.cpp.o ../../lib/libconfigFile.so -Wl,-rpath,/home/cyapp/vegafem/build/lib 

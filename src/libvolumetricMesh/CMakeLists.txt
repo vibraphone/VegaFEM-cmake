@@ -3,7 +3,7 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../libgraph
    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libObjMesh
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
    ${CMAKE_SOURCE_DIR}/include
 )
@@ -25,4 +25,4 @@ volumetricMeshExtensions.cpp
 )
 
 add_library(volumetricMesh SHARED ${VOL_SRCS})
-target_link_libraries(volumetricMesh sparseMatrix graph matrix ObjMesh minivector)
+target_link_libraries(volumetricMesh sparseMatrix graph matrix objMesh minivector)
