@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/cyapp/vegafem/src/libgetopts/getopts.cpp
+getopts.h
+/home/cyapp/vegafem/src/libgetopts/getopts.h
+stdlib.h
+-
+string.h
+-
+errno.h
+-
+stdio.h
+-
+
+/home/cyapp/vegafem/src/libgetopts/getopts.h
+

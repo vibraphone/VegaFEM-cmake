@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/cyapp/vegafem/src/libconfigFile/configFile.cpp
+string
+-
+string.h
+-
+stdio.h
+-
+stdlib.h
+-
+configFile.h
+/home/cyapp/vegafem/src/libconfigFile/configFile.h
+
+/home/cyapp/vegafem/src/libconfigFile/configFile.h
+vector
+-
+string
+-
+

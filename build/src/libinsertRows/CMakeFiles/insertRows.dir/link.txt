@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC    -shared -Wl,-soname,libinsertRows.so -o ../../lib/libinsertRows.so CMakeFiles/insertRows.dir/insertRows.cpp.o 

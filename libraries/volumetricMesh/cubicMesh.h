@@ -1,0 +1,121 @@
+/*************************************************************************
+ *                                                                       *
+ * Vega FEM Simulation Library Version 1.0                               *
+ *                                                                       *
+ * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
+ * All rights reserved.                                                  *
+ *                                                                       *
+ * Code author: Jernej Barbic                                            *
+ * http://www.jernejbarbic.com/code                                      *
+ *                                                                       *
+ * Research: Jernej Barbic, Fun Shing Sin, Daniel Schroeder,             *
+ *           Doug L. James, Jovan Popovic                                *
+ *                                                                       *
+ * Funding: National Science Foundation, Link Foundation,                *
+ *          Singapore-MIT GAMBIT Game Lab,                               *
+ *          Zumberge Research and Innovation Fund at USC                 *
+ *                                                                       *
+ * Version 3.0                                                           *
+ *                                                                       *
+ * This library is free software; you can redistribute it and/or         *
+ * modify it under the terms of the BSD-style license that is            *
+ * included with this library in the file LICENSE.txt                    *
+ *                                                                       *
+ * This library is distributed in the hope that it will be useful,       *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the file     *
+ * LICENSE.TXT for more details.                                         *
+ *                                                                       *
+ *************************************************************************/
+
+/*
+
+  This class is a container for a cubic ("voxel") volumetric 3D mesh. 
+  See also volumetricMesh.h. 
+
+  All cubes are of equal size, aligned with coordinate system axes, and 
+  follow a grid pattern. They are typically obtained by voxelizing a 
+  given input triangle geometry.
+
+  To generate a CubicMesh from an input triangle mesh (optionally flood-filling 
+  interior chambers), you can use the "Large Modal Deformation Factory" 
+  application ( http://www.jernejbarbic.com/code ) .
+
+*/
+
+#ifndef _CUBICMESH_H_
+#define _CUBICMESH_H_
+
+#include "volumetricMesh.h"
+// see also volumetricMesh.h for a description of the routines
+
+class CubicMesh : public VolumetricMesh
+{
+public:
+  
+  // loads the mesh from a text file (.veg format; see documentation and examples)
+  CubicMesh(char * filename); 
+
+  // constructs a mesh from the given vertices and elements, with a single region and material
+  CubicMesh(int numVertices, double * vertices,
+         int numElements, int * elements,
+         double E=1E6, double nu=0.45, double density=1000);
+
+  // constructs a voxel mesh with the given voxels, as a subset of a regular 3D grid
+  // 'voxels' gives the grid indices (3 per voxel) of the voxels that are to be included in the mesh
+  // 'voxels' has length 3 x numVoxels
+  static CubicMesh * createFromUniformGrid(int resolution, int numVoxels, int * voxels, double E=1E6, double nu=0.45, double density=1000);
+
+  // creates a mesh consisting of the specified element subset of the given CubicMesh
+  CubicMesh(const CubicMesh & mesh, int numElements, int * elements, std::map<int,int> * vertexMap = NULL);
+
+  CubicMesh (const CubicMesh & CubicMesh);
+  virtual VolumetricMesh * clone();
+  virtual ~CubicMesh();
+
+  // saves the mesh to a text file (.veg format, see examples and documentation)
+  virtual int save(char * filename) const;
+
+  // === misc queries ===
+
+  static const VolumetricMesh::elementType elementType() { return elementType_; }
+  virtual VolumetricMesh::elementType getElementType() const { return elementType(); }
+
+  inline double getCubeSize() const { return cubeSize; }
+
+  virtual double getElementVolume(int el) const;
+  virtual void computeElementMassMatrix(int el, double * massMatrix) const;
+  virtual void getElementInertiaTensor(int el, Mat3d & inertiaTensor) const;
+
+  virtual bool containsVertex(int element, Vec3d pos) const; // true if given element contain given position, false otherwise
+
+  // edge queries
+  virtual int getNumElementEdges() const; 
+  virtual void getElementEdges(int el, int * edgeBuffer) const;
+
+  // === interpolation ===
+
+  virtual void computeBarycentricWeights(int el, Vec3d pos, double * weights) const;
+
+  int interpolateData(double * volumetricMeshVertexData, int numLocations, int r, double * interpolationLocations, double * destMatrix, double zeroThreshold = -1.0) const;
+
+  // computes approximation to the normal correction for the given deformations
+  // vertexData size must a matrix of size 3 * nElements x r
+  // destMatrix must be a vector of length 3 * numLocations x r
+  // staticNormals must be a vector of length 3 * numLocations
+  // returns the number of vertices that were not contained inside any element
+  // vertices more than distanceThreshold away from any element vertex are assigned zero data
+  int normalCorrection(double * vertexData, int numLocations, int r, double * interpolationLocations, double * staticNormals, double * normalCorrection, double zeroThreshold = -1.0) const; // note: this routine could be promoted to volumetricMesh.h
+
+  virtual void interpolateGradient(int element, double * U, int r, Vec3d pos, double * grad) const;
+
+protected:
+  double cubeSize;
+  static const VolumetricMesh::elementType elementType_;
+  CubicMesh(int numElementVertices): VolumetricMesh(numElementVertices) {}
+
+  friend class VolumetricMeshExtensions;
+};
+
+#endif
+

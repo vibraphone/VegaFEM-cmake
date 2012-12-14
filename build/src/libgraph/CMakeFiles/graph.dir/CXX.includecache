@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/libgraph/../libsparseMatrix/sparseMatrix.h
+string.h
+-
+vector
+-
+map
+-
+
+/home/cyapp/vegafem/src/libgraph/graph.cpp
+limits.h
+-
+math.h
+-
+stdio.h
+-
+stdlib.h
+-
+graph.h
+/home/cyapp/vegafem/src/libgraph/graph.h
+
+/home/cyapp/vegafem/src/libgraph/graph.h
+vector
+-
+set
+-
+map
+-
+sparseMatrix.h
+/home/cyapp/vegafem/src/libgraph/sparseMatrix.h
+

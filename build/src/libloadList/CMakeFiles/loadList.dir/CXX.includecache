@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/cyapp/vegafem/src/libloadList/loadList.cpp
+loadList.h
+/home/cyapp/vegafem/src/libloadList/loadList.h
+stdlib.h
+-
+stdio.h
+-
+string.h
+-
+ctype.h
+-
+
+/home/cyapp/vegafem/src/libloadList/loadList.h
+

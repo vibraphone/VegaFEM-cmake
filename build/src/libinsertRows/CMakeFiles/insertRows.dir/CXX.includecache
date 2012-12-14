@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/cyapp/vegafem/src/libinsertRows/insertRows.cpp
+insertRows.h
+/home/cyapp/vegafem/src/libinsertRows/insertRows.h
+stdio.h
+/home/cyapp/vegafem/src/libinsertRows/stdio.h
+stdlib.h
+/home/cyapp/vegafem/src/libinsertRows/stdlib.h
+
+/home/cyapp/vegafem/src/libinsertRows/insertRows.h
+

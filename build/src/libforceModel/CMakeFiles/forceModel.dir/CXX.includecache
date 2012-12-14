@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/libforceModel/../libsparseMatrix/sparseMatrix.h
+string.h
+-
+vector
+-
+map
+-
+
+/home/cyapp/vegafem/src/libforceModel/forceModel.cpp
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+math.h
+-
+forceModel.h
+/home/cyapp/vegafem/src/libforceModel/forceModel.h
+
+/home/cyapp/vegafem/src/libforceModel/forceModel.h
+stdlib.h
+-
+sparseMatrix.h
+/home/cyapp/vegafem/src/libforceModel/sparseMatrix.h
+
