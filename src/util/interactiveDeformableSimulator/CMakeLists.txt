@@ -26,8 +26,8 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/include
 )
 
-add_executable(simulator interactiveDeformableSimulator.cpp initGraphics.cpp)
-target_link_libraries(simulator sceneObject integrator elasticForceModel forceModel 
+add_executable(deformsim interactiveDeformableSimulator.cpp initGraphics.cpp)
+target_link_libraries(deformsim sceneObject integrator elasticForceModel forceModel 
 matrix sparseMatrix loadList insertRows lighting configFile volumetricMesh getopts 
 camera graph isotropicHyperelasticFEM minivector stvk corotationalLinearFEM 
 polarDecomposition massSpringSystem objMesh sparseSolver 
