@@ -1,8 +1,8 @@
 *tetMeshFilename
-../../models/turtle/turtle-volumetric-heterogeneous.veg
+model/turtle-volumetric-heterogeneous.veg
 
 *surfaceMeshFilename
-../../models/turtle/turtle-volumetric.obj
+model/turtle-volumetric.obj
 
 *density
 1.0
