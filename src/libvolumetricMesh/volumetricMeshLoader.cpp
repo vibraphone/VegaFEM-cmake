@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
+ * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -30,7 +30,7 @@
 #include "cubicMesh.h"
 #include "tetMesh.h"
 
-VolumetricMesh * VolumetricMeshLoader::load(char * filename)
+VolumetricMesh * VolumetricMeshLoader::load(char * filename, int verbose)
 {
   VolumetricMesh::elementType elementType_ = VolumetricMesh::getElementType(filename);
   if (elementType_ == VolumetricMesh::INVALID)
@@ -41,10 +41,10 @@ VolumetricMesh * VolumetricMeshLoader::load(char * filename)
   VolumetricMesh * volumetricMesh = NULL;
 
   if (elementType_ == TetMesh::elementType())
-    volumetricMesh = new TetMesh(filename); 
+    volumetricMesh = new TetMesh(filename, verbose); 
 
   if (elementType_ == CubicMesh::elementType())
-    volumetricMesh = new CubicMesh(filename); 
+    volumetricMesh = new CubicMesh(filename, verbose); 
 
   return volumetricMesh;
 }

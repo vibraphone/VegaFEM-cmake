@@ -4,6 +4,6 @@
   #include "mkl_lapack.h"
   #include "mkl_blas.h"
 #elif defined(__APPLE__)
-  #include <vecLib/vecLib.h>
+  #include <Accelerate/Accelerate.h>
 #endif
 

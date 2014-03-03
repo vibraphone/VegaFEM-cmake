@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "corotational linear FEM" library , Copyright (C) 2012 USC            *
+ * "corotational linear FEM" library , Copyright (C) 2013 USC            *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -115,10 +115,10 @@ void CorotationalLinearFEMMT::Initialize()
     }
   }
 
-  printf("Total elements: %d \n", numElements);
-  printf("Num threads: %d \n", numThreads);
-  printf("Canonical job size: %d \n", jobSize);
-  printf("Num threads with job size augmented by one edge: %d \n", remainder);
+  //printf("Total elements: %d \n", numElements);
+  //printf("Num threads: %d \n", numThreads);
+  //printf("Canonical job size: %d \n", jobSize);
+  //printf("Num threads with job size augmented by one edge: %d \n", remainder);
 }
 
 void CorotationalLinearFEMMT::ComputeForceAndStiffnessMatrix(double * u, double * f, SparseMatrix * stiffnessMatrix, int warp)

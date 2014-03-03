@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
+ * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -40,7 +40,7 @@ using namespace std;
 
 const VolumetricMesh::elementType CubicMesh::elementType_ = CUBIC;
 
-CubicMesh::CubicMesh(char * filename) : VolumetricMesh(filename, 8, &temp)
+CubicMesh::CubicMesh(char * filename, int verbose) : VolumetricMesh(filename, 8, verbose, &temp)
 {
   if (temp != elementType_)
   {
@@ -56,7 +56,23 @@ CubicMesh::CubicMesh(int numVertices, double * vertices,
                int numElements, int * elements,
                double E, double nu, double density): VolumetricMesh(numVertices, vertices, numElements, 8, elements, E, nu, density)
 {
-  cubeSize = len(*getVertex(0,1) - *getVertex(0,0));
+  if (numElements > 0)
+    cubeSize = len(*getVertex(0,1) - *getVertex(0,0));
+  else
+    cubeSize = 0.0;
+}
+
+CubicMesh::CubicMesh(int numVertices, double * vertices,
+         int numElements, int * elements,
+         int numMaterials, Material ** materials,
+         int numSets, Set ** sets,
+         int numRegions, Region ** regions): 
+  VolumetricMesh(numVertices, vertices, numElements, 8, elements, numMaterials, materials, numSets, sets, numRegions, regions)
+{
+  if (numElements > 0)
+    cubeSize = len(*getVertex(0,1) - *getVertex(0,0));
+  else
+    cubeSize = 0.0;
 }
 
 CubicMesh::CubicMesh(const CubicMesh & source): VolumetricMesh(source), cubeSize(source.cubeSize) {}
@@ -454,11 +470,6 @@ void CubicMesh::interpolateGradient(int element, const double * U, int numFields
         // 9 x r matrix
         grad[ELT(9, 3*ii+jj, j)] = FMode[ii][jj];
       }
-
-    // add identity matrix
-    grad[ELT(9, 0, j)] += 1.0;
-    grad[ELT(9, 4, j)] += 1.0;
-    grad[ELT(9, 8, j)] += 1.0;
   }
 }
 
@@ -642,7 +653,7 @@ void CubicMesh::subdivide()
     for(set<int> :: iterator iter = oldElements.begin(); iter != oldElements.end(); iter++)
     {
       for(int i=0; i<8; i++)
-        newSet->insert(8 * (*iter-1) + i + 1);
+        newSet->insert(8 * *iter + i);
     }
 
     delete(sets[setIndex]);

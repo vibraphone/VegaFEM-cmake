@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "sparseMatrix" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
+ * "sparseMatrix" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC   *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -121,6 +121,15 @@ void SparseMatrixOutline::Allocate()
   map<int,double> emptyMap;
   for (int i=0; i<numRows; i++)
     columnEntries.push_back(emptyMap);
+}
+
+void SparseMatrixOutline::IncreaseNumRows(int numAddedRows)
+{
+  map<int,double> emptyMap;
+  for(int i=0; i<numAddedRows; i++)
+    columnEntries.push_back(emptyMap);
+
+  numRows += numAddedRows;
 }
 
 void SparseMatrixOutline::AddEntry(int i, int j, double value)
@@ -1493,16 +1502,16 @@ void SparseMatrix::RemoveRowsSlow(int numRows, int * rows, int oneIndexed)
     RemoveRow(rows[i]-i-oneIndexed);
 }
 
-void SparseMatrix::RemoveRows(int numRows, int * rows, int oneIndexed)
+void SparseMatrix::RemoveRows(int numRemovedRows, int * removedRows, int oneIndexed)
 {
   // the removed dofs must be pre-sorted
   // build a map from old dofs to new ones
   vector<int> oldToNew(numRows);
   int dof = 0;
   int dofCount = 0;
-  for(int i=0; i<numRows; i++)
+  for(int i=0; i<numRemovedRows; i++)
   {
-    while (dof < rows[i] - oneIndexed)
+    while (dof < removedRows[i] - oneIndexed)
     {
       oldToNew[dof] = dofCount;
       dofCount++;
@@ -1535,7 +1544,7 @@ void SparseMatrix::RemoveRows(int numRows, int * rows, int oneIndexed)
     targetRow++;
   }
 
-  numRows -= numRows;
+  numRows -= numRemovedRows;
   columnEntries = (double**) realloc(columnEntries, sizeof(double*) * numRows);
   columnIndices = (int**) realloc(columnIndices, sizeof(double*) * numRows);
   rowLength = (int*) realloc(rowLength, sizeof(int) * numRows);
@@ -1660,20 +1669,20 @@ int SparseMatrix::GetNumColumns() const
   return numColumns + 1;
 }
 
-void SparseMatrix::IncreaseNumRows(int newNumRows)
+void SparseMatrix::IncreaseNumRows(int numAddedRows)
 {
-  int newn = numRows + newNumRows;
+  int newn = numRows + numAddedRows;
 
   rowLength = (int*) realloc (rowLength, sizeof(int) * newn);
-  for(int i=0; i<newNumRows; i++)
+  for(int i=0; i<numAddedRows; i++)
     rowLength[numRows + i] = 0;
 
   columnIndices = (int**) realloc (columnIndices, sizeof(int*) * newn);
-  for(int i=0; i<newNumRows; i++)
+  for(int i=0; i<numAddedRows; i++)
     columnIndices[numRows + i] = NULL;
 
   columnEntries = (double**) realloc (columnEntries, sizeof(double*) * newn);
-  for(int i=0; i<newNumRows; i++)
+  for(int i=0; i<numAddedRows; i++)
     columnEntries[numRows + i] = NULL;
 
   numRows = newn;
@@ -1702,6 +1711,8 @@ SparseMatrix SparseMatrix::ConjugateMatrix(SparseMatrix & U, int verbose)
         {
           int K = U.columnIndices[I][k];
           int L = U.columnIndices[J][l];
+
+          // there is an entry at (I, K), and another entry at (J, L); compute their contribution to tensor product:
           outline.AddEntry(K, L, scalar * U.columnEntries[I][k] * U.columnEntries[J][l]);
         }
     }

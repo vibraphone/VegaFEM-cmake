@@ -6,10 +6,12 @@ include_directories(
 
 set(SOLVER_SRCS
  linearSolver.cpp
+ #ARPACKSolver.cpp
  PardisoSolver.cpp
  SPOOLESSolver.cpp
  SPOOLESSolverMT.cpp
  CGSolver.cpp
+ invMKSolver.cpp
 )
 
 add_library(sparseSolver SHARED ${SOLVER_SRCS})

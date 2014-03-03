@@ -3,4 +3,14 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/include
 )
 
-add_library(matrix SHARED matrixIO.cpp)
+set(matrix_srcs
+	matrixProjection.cpp
+	matrixPCA.cpp
+	matrixBLAS.cpp
+	matrixLAPACK.cpp
+	matrix.cpp
+	matrixExp.cpp
+	)
+
+add_library(matrix SHARED ${matrix_srcs})
+target_link_libraries(matrix matrixIO)

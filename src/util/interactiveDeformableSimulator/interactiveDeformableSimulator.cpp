@@ -1,9 +1,9 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
  * "Interactive deformable object simulator" driver application,         *
- *  Copyright (C) 2007 CMU, 2009 MIT, 2012 USC                           *
+ *  Copyright (C) 2007 CMU, 2009 MIT, 2013 USC                           *
  *                                                                       *
  * All rights reserved.                                                  *
  *                                                                       *
@@ -73,7 +73,7 @@ using namespace std;
 
 #include "getopts.h"
 #include "initGraphics.h"
-#include "sceneObjects.h"
+#include "sceneObjectDeformable.h"
 #include "performanceCounter.h"
 #include "tetMesh.h"
 #include "StVKCubeABCD.h"
@@ -197,7 +197,7 @@ float newmarkBeta = 0.25;
 float newmarkGamma = 0.5;
 int use1DNewmarkParameterFamily = 1;
 int substepsPerTimeStep = 1;
-double principalStretchThreshold;
+double inversionThreshold;
 double fps = 0.0;
 const int fpsBufferSize = 5;
 int fpsHead = 0;
@@ -239,6 +239,8 @@ StVKStiffnessMatrix * stVKStiffnessMatrix = NULL;
 StVKForceModel * stVKForceModel = NULL;
 MassSpringSystemForceModel * massSpringSystemForceModel = NULL;
 CorotationalLinearFEMForceModel * corotationalLinearFEMForceModel = NULL;
+int enableCompressionResistance = 1;
+double compressionResistance = 500;
 int centralDifferencesTangentialDampingUpdateMode = 1;
 int positiveDefinite = 0;
 int addGravity=0;
@@ -906,16 +908,20 @@ void specialFunction(int key, int x, int y)
   switch (key)
   {
     case GLUT_KEY_LEFT:
-      break;
+      camera->MoveFocusRight(+0.1 * camera->GetRadius());
+    break;
 
     case GLUT_KEY_RIGHT:
-      break;
+      camera->MoveFocusRight(-0.1 * camera->GetRadius());
+    break;
 
     case GLUT_KEY_DOWN:
-      break;
+      camera->MoveFocusUp(+0.1 * camera->GetRadius());
+    break;
 
     case GLUT_KEY_UP:
-      break;
+      camera->MoveFocusUp(-0.1 * camera->GetRadius());
+    break;
 
     case GLUT_KEY_PAGE_UP:
       break;
@@ -1502,17 +1508,20 @@ void initSimulation()
     switch (invertibleMaterial)
     {
       case INV_STVK:
-	isotropicMaterial = new StVKIsotropicMaterial(tetMesh);
+      {
+      
+	isotropicMaterial = new StVKIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
 	printf("Invertible material: StVK.\n");
 	break;
+      }
 
       case INV_NEOHOOKEAN:
-	isotropicMaterial = new NeoHookeanIsotropicMaterial(tetMesh);
+	isotropicMaterial = new NeoHookeanIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
 	printf("Invertible material: neo-Hookean.\n");
 	break;
 
       case INV_MOONEYRIVLIN:
-	isotropicMaterial = new MooneyRivlinIsotropicMaterial(tetMesh);
+	isotropicMaterial = new MooneyRivlinIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
 	printf("Invertible material: Mooney-Rivlin.\n");
 	break;
 
@@ -1525,9 +1534,9 @@ void initSimulation()
     // create the invertible FEM deformable model
     IsotropicHyperelasticFEM * isotropicHyperelasticFEM;
     if (numInternalForceThreads == 0)
-      isotropicHyperelasticFEM = new IsotropicHyperelasticFEM(tetMesh, isotropicMaterial, principalStretchThreshold, addGravity, g);
+      isotropicHyperelasticFEM = new IsotropicHyperelasticFEM(tetMesh, isotropicMaterial, inversionThreshold, addGravity, g);
     else
-      isotropicHyperelasticFEM = new IsotropicHyperelasticFEMMT(tetMesh, isotropicMaterial, principalStretchThreshold, addGravity, g, numInternalForceThreads);
+      isotropicHyperelasticFEM = new IsotropicHyperelasticFEMMT(tetMesh, isotropicMaterial, inversionThreshold, addGravity, g, numInternalForceThreads);
 
     // create force model for the invertible FEM class
     IsotropicHyperelasticFEMForceModel * isotropicHyperelasticFEMForceModel = new IsotropicHyperelasticFEMForceModel(isotropicHyperelasticFEM);
@@ -1674,7 +1683,8 @@ void initConfigurations()
   configFile.addOptionOptional("useRealTimeNormals", &useRealTimeNormals, 0);
   configFile.addOptionOptional("fixedVerticesFilename", fixedVerticesFilename, "__none");
   configFile.addOptionOptional("massMatrixFilename", massMatrixFilename, "__none");
-
+  configFile.addOptionOptional("enableCompressionResistance", &enableCompressionResistance, enableCompressionResistance);
+  configFile.addOptionOptional("compressionResistance", &compressionResistance, compressionResistance);
   configFile.addOption("timestep", &timeStep);
   configFile.addOptionOptional("substepsPerTimeStep", &substepsPerTimeStep, substepsPerTimeStep);
   configFile.addOptionOptional("syncTimestepWithGraphics", &syncTimestepWithGraphics, syncTimestepWithGraphics);
@@ -1690,7 +1700,7 @@ void initConfigurations()
   configFile.addOptionOptional("epsilon", &epsilon, 1E-6);
   configFile.addOptionOptional("numInternalForceThreads", &numInternalForceThreads, 0);
   configFile.addOptionOptional("numSolverThreads", &numSolverThreads, 1);
-  configFile.addOptionOptional("principalStretchThreshold", &principalStretchThreshold, -DBL_MAX);
+  configFile.addOptionOptional("inversionThreshold", &inversionThreshold, -DBL_MAX);
   configFile.addOptionOptional("forceLoadsFilename", forceLoadsFilename, "__none");
 
   configFile.addOptionOptional("windowWidth", &windowWidth, windowWidth);
@@ -2022,7 +2032,7 @@ void initGLUI()
   glui->add_separator();
 
   glui->add_statictext("J. Barbic, F. S. Sin, D. Schroeder");
-  glui->add_statictext("CMU, MIT, USC, 2005-2012");
+  glui->add_statictext("CMU, MIT, USC, 2005-2013");
 
   glui->add_separator();
 

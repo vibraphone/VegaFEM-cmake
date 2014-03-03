@@ -122,6 +122,12 @@ find_package(OpenGL)
 find_package(GLUT)
 find_package(GLUI)
 
+if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
+  add_subdirectory(src/other/glui/glui-2.35/src)
+  set(GLUI_LIBRARY glui)
+  set(GLUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/other/glui/glui-2.35/src/include)
+endif(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
+
 # OpenGL is used in many places in the code, so
 # just include the necessary directories here.
 include_directories(

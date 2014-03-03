@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
+ * "isotropic hyperelastic FEM" library , Copyright (C) 2013 USC         *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Fun Shing Sin                            *
@@ -29,9 +29,10 @@
 #include <math.h>
 #include "homogeneousNeoHookeanIsotropicMaterial.h"
 
-HomogeneousNeoHookeanIsotropicMaterial::HomogeneousNeoHookeanIsotropicMaterial(double E_, double nu_)
+HomogeneousNeoHookeanIsotropicMaterial::HomogeneousNeoHookeanIsotropicMaterial(double E_, double nu_, int enableCompressionResistance_, double compressionResistance_) : IsotropicMaterialWithCompressionResistance(enableCompressionResistance_), compressionResistance(compressionResistance_)
 {
   SetYoungModulusAndPoissonRatio(E_, nu_);
+  EdivNuFactor = compressionResistance * E / (1.0 - 2.0 * nu);
 }
 
 HomogeneousNeoHookeanIsotropicMaterial::~HomogeneousNeoHookeanIsotropicMaterial() {}
@@ -61,6 +62,9 @@ double HomogeneousNeoHookeanIsotropicMaterial::ComputeEnergy(int elementIndex, d
   // threshold was set), so normally this is not an issue.
 
   double energy = 0.5 * muLame * (IC - 3.0) - muLame * logJ + 0.5 * lambdaLame * logJ * logJ;
+
+  AddCompressionResistanceEnergy(elementIndex, invariants, &energy);
+
   return energy;
 }
 
@@ -71,6 +75,8 @@ void HomogeneousNeoHookeanIsotropicMaterial::ComputeEnergyGradient(int elementIn
   gradient[0] = 0.5 * muLame;
   gradient[1] = 0.0;
   gradient[2] = (-0.5 * muLame + 0.25 * lambdaLame * log(IIIC)) / IIIC;
+
+  AddCompressionResistanceGradient(elementIndex, invariants, gradient);
 }
 
 void HomogeneousNeoHookeanIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double * invariants, double * hessian) // invariants is a 3-vector, hessian is a 3x3 symmetric matrix, unrolled into a 6-vector, in the following order: (11, 12, 13, 22, 23, 33).
@@ -88,5 +94,12 @@ void HomogeneousNeoHookeanIsotropicMaterial::ComputeEnergyHessian(int elementInd
   hessian[4] = 0.0;
   // 33
   hessian[5] = (0.25 * lambdaLame + 0.5 * muLame - 0.25 * lambdaLame * log(IIIC)) / (IIIC * IIIC);
+
+  AddCompressionResistanceHessian(elementIndex, invariants, hessian);
+}
+
+double HomogeneousNeoHookeanIsotropicMaterial::GetCompressionResistanceFactor(int elementIndex)
+{
+  return EdivNuFactor;
 }
 

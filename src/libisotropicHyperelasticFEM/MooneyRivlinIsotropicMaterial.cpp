@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
+ * "isotropic hyperelastic FEM" library , Copyright (C) 2013 USC         *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Fun Shing Sin                            *
@@ -30,12 +30,17 @@
 #include "MooneyRivlinIsotropicMaterial.h"
 #include "volumetricMeshMooneyRivlinMaterial.h"
 
-MooneyRivlinIsotropicMaterial::MooneyRivlinIsotropicMaterial(TetMesh * tetMesh)
+MooneyRivlinIsotropicMaterial::MooneyRivlinIsotropicMaterial(TetMesh * tetMesh, int enableCompressionResistance_, double compressionResistance_) : IsotropicMaterialWithCompressionResistance(enableCompressionResistance_), compressionResistance(compressionResistance_)
 {
   int numElements = tetMesh->getNumElements();
   mu01_ = (double*) malloc (sizeof(double) * numElements);
   mu10_ = (double*) malloc (sizeof(double) * numElements);
   v1_ = (double*) malloc (sizeof(double) * numElements);
+
+  if (enableCompressionResistance)
+    EdivNuFactor = (double*) malloc (sizeof(double) * numElements);
+  else
+    EdivNuFactor = NULL;
 
   for(int el=0; el<numElements; el++)
   {
@@ -43,18 +48,39 @@ MooneyRivlinIsotropicMaterial::MooneyRivlinIsotropicMaterial(TetMesh * tetMesh)
     VolumetricMesh::MooneyRivlinMaterial * mooneyRivlinMaterial = downcastMooneyRivlinMaterial(material);
     if (mooneyRivlinMaterial == NULL)
     {
-      printf("Error: mesh does not consist of Mooney-Rivlin materials.\n");
+      printf("Error: MooneyRivlinIsotropicMaterial: mesh does not consist of Mooney-Rivlin materials.\n");
       throw 1;
     }
 
     mu01_[el] = mooneyRivlinMaterial->getmu01();
     mu10_[el] = mooneyRivlinMaterial->getmu10();
     v1_[el] = mooneyRivlinMaterial->getv1();
+
+    if (enableCompressionResistance)
+    {
+      // invert the following formulas to compute "pseudo" E and nu that correspond to this material
+      //K = Ea / ( 3 * ( 1 - 2 * nua ) );
+      //G = Ea / ( 2 * ( 1 + nua ) );
+      //mu10 = G / ( 2 * ( 1 + mur ) );
+      //mu01 = mur * mu10;
+      //v1 = K / 2;
+
+      double K = 2.0 * v1_[el];
+      double muRatio = mu01_[el] / mu10_[el];
+      double G = mu10_[el] * ( 2 * ( 1 + muRatio ) );
+
+      double E = 9 * K * G / (3 * K + G);
+      double nu = (3 * K - 2 * G) / (2 * (3 * K + G));
+
+      EdivNuFactor[el] = compressionResistance * E / (1.0 - 2.0 * nu);
+      //printf("Setting EdivNuFactor[%d]=%G\n", el, EdivNuFactor[el]);
+    }
   }
 }
 
 MooneyRivlinIsotropicMaterial::~MooneyRivlinIsotropicMaterial() 
 {
+  free(EdivNuFactor);
   free(mu01_);
   free(mu10_);
   free(v1_);
@@ -73,11 +99,16 @@ double MooneyRivlinIsotropicMaterial::ComputeEnergy(int elementIndex, double * i
   double energy = 0.5 * (-6.0 + (Ic * Ic - IIc) / pow(IIIc, 2.0 / 3.0)) * mu01 + 
                   (-3.0 + Ic / pow(IIIc, 1.0 / 3.0)) * mu10 + 
                   pow(-1.0 + sqrt(IIIc), 2.0) * v1;
+
+  AddCompressionResistanceEnergy(elementIndex, invariants, &energy);
+
   return energy;
 }
 
 void MooneyRivlinIsotropicMaterial::ComputeEnergyGradient(int elementIndex, double * invariants, double * gradient) // invariants and gradient are 3-vectors
 {
+  //printf("Entering MooneyRivlinIsotropicMaterial::ComputeEnergyGradient\n");
+
   double Ic = invariants[0];
   double IIc = invariants[1];
   double IIIc = invariants[2];
@@ -92,6 +123,8 @@ void MooneyRivlinIsotropicMaterial::ComputeEnergyGradient(int elementIndex, doub
   gradient[2] = (-1.0 / 3.0 * (Ic * Ic - IIc) * mu01) / pow(IIIc, 5.0 / 3.0) - 
     (1.0 / 3.0 * Ic * mu10) / pow(IIIc, 4.0 / 3.0) + 
     ((-1.0 + sqrt(IIIc)) * v1) / sqrt(IIIc);
+
+  AddCompressionResistanceGradient(elementIndex, invariants, gradient);
 }
 
 void MooneyRivlinIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double * invariants, double * hessian) // invariants is a 3-vector, hessian is a 3x3 symmetric matrix, unrolled into a 6-vector, in the following order: (11, 12, 13, 22, 23, 33).
@@ -120,5 +153,12 @@ void MooneyRivlinIsotropicMaterial::ComputeEnergyHessian(int elementIndex, doubl
                ((4.0 / 9.0) * Ic * mu10) / pow(IIIc, 7.0 / 3.0) - 
                (-1.0 + sqrt(IIIc)) * v1 / (2.0 * pow(IIIc, 1.5)) + 
                v1 / (2.0 * IIIc);
+
+  AddCompressionResistanceHessian(elementIndex, invariants, hessian);
+}
+
+double MooneyRivlinIsotropicMaterial::GetCompressionResistanceFactor(int elementIndex)
+{
+  return EdivNuFactor[elementIndex];
 }
 

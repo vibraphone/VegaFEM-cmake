@@ -1,0 +1,17 @@
+*tetMeshFilename
+../../models/asianDragon/asianDragon.veg
+
+*surfaceMeshFilename
+../../models/asianDragon/asianDragon.veg.obj
+
+*density
+1.0
+
+*tensileStiffness
+50000.0
+
+*damping
+0.01
+
+*addGravity
+0.0

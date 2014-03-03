@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "corotational linear FEM" library , Copyright (C) 2012 USC            *
+ * "corotational linear FEM" library , Copyright (C) 2013 USC            *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -59,7 +59,7 @@ CorotationalLinearFEM::CorotationalLinearFEM(TetMesh * tetMesh_) : tetMesh(tetMe
     VolumetricMesh::ENuMaterial * eNuMaterial = downcastENuMaterial(material);
     if (eNuMaterial == NULL)
     {
-      printf("Error: mesh does not consist of E, nu materials.\n");
+      printf("Error: CorotationalLinearFEM: mesh does not consist of E, nu materials.\n");
       throw 1;
     }
 

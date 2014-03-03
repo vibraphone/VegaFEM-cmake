@@ -86,8 +86,10 @@ void SphericalCamera::ZoomIn(double amount)
 {
   R -= amount * movementSensitivity;
   
+/*
   if (R < fabs(movementSensitivity))
     R = fabs(movementSensitivity);
+*/
 
   ComputeCameraPosition();
   ComputeLocalCoordinateSystem();

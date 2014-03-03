@@ -1,6 +1,5 @@
 include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../libperformanceCounter
    ${CMAKE_CURRENT_SOURCE_DIR}/../libinsertRows
@@ -11,14 +10,9 @@ include_directories(
 )
 
 set(INTEGRATOR_SRCS
- centralDifferencesSparse.cpp
- eulerSparse.cpp
- implicitBackwardEulerSparse.cpp
- implicitNewmarkSparse.cpp
  integratorBase.cpp
- integratorBaseSparse.cpp
  getIntegratorSolver.cpp
 )
 
 add_library(integrator SHARED ${INTEGRATOR_SRCS})
-target_link_libraries(integrator matrix performanceCounter insertRows sparseSolver forceModel)
+target_link_libraries(integrator performanceCounter insertRows sparseSolver forceModel)

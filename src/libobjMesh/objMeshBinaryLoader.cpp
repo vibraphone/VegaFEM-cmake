@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -25,6 +25,12 @@
  * LICENSE.TXT for more details.                                         *
  *                                                                       *
  *************************************************************************/
+
+#ifdef WIN32
+  #pragma warning(disable : 4996)
+  #pragma warning(disable : 4267)
+  #pragma warning(disable : 4244)
+#endif
 
 #include <vector>
 #include <queue>

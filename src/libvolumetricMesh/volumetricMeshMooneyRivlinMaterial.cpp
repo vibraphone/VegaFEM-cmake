@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
+ * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -33,7 +33,7 @@ VolumetricMesh::Material::materialType VolumetricMesh::MooneyRivlinMaterial::get
   return VolumetricMesh::Material::MOONEYRIVLIN; 
 }
 
-VolumetricMesh::Material * VolumetricMesh::MooneyRivlinMaterial::clone() 
+VolumetricMesh::Material * VolumetricMesh::MooneyRivlinMaterial::clone() const
 { 
   return new VolumetricMesh::MooneyRivlinMaterial(*this); 
 }

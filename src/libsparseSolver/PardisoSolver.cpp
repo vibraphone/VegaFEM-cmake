@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC   *
+ * "sparseSolver" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC   *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -54,7 +54,7 @@
 #include "mkl.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-  #define PARDISO pardiso_
+  #define PARDISO pardiso
 #else
   #define PARDISO pardiso
 #endif
@@ -214,6 +214,97 @@ int PardisoSolver::SolveLinearSystem(double * x, const double * rhs)
     printf("Solve completed.\n"); 
 
   return (int)error;
+}
+
+
+MKL_INT PardisoSolver::ForwardSubstitution(double * y, const double * rhs)
+{
+  if (directIterative != 0)
+  {
+    printf("Error: direct-iterative flag was specified in the constructor (must use SolveLinearSystemDirectIterative routine).\n");
+    return 101;
+  }
+
+  if (verbose >= 2)
+    printf("Performing forward substitution...(%d threads, using previously computed LU)\n", numThreads);
+
+  int maxIterRefinementSteps = iparm[7];
+  iparm[7] = 0;
+
+  phase = 331;
+  PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, NULL, &nrhs, iparm, &msglvl, (double*)rhs, y, &error);
+
+  iparm[7] = maxIterRefinementSteps;
+
+  if (error != 0)
+    printf("Error: Pardiso solve returned non-zero exit code %d.\n", error);
+
+  if (verbose >= 2)
+    printf("Solve completed.\n"); 
+
+  return error;
+}
+
+MKL_INT PardisoSolver::DiagonalSubstitution(double * v, const double * y)
+{
+  if (directIterative != 0)
+  {
+    printf("Error: direct-iterative flag was specified in the constructor (must use SolveLinearSystemDirectIterative routine).\n");
+    return 101;
+  }
+
+  if (positiveDefinite == 1)
+  {
+    printf("Error: diagonal substitution should not be used for positive-definite matrices.\n");
+    return 102;
+  }
+
+  if (verbose >= 2)
+    printf("Performing forward substitution...(%d threads, using previously computed LU)\n", numThreads);
+
+  int maxIterRefinementSteps = iparm[7];
+  iparm[7] = 0;
+
+  phase = 332;
+  PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, NULL, &nrhs, iparm, &msglvl, (double*)y, v, &error);
+
+  iparm[7] = maxIterRefinementSteps;
+
+  if (error != 0)
+    printf("Error: Pardiso solve returned non-zero exit code %d.\n", error);
+
+  if (verbose >= 2)
+    printf("Solve completed.\n"); 
+
+  return error;
+}
+
+MKL_INT PardisoSolver::BackwardSubstitution(double * x, const double * y)
+{
+  if (directIterative != 0)
+  {
+    printf("Error: direct-iterative flag was specified in the constructor (must use SolveLinearSystemDirectIterative routine).\n");
+    return 101;
+  }
+
+  if (verbose >= 2)
+    printf("Performing forward substitution...(%d threads, using previously computed LU)\n", numThreads);
+
+  int maxIterRefinementSteps = iparm[7];
+  iparm[7] = 0;
+
+  phase = 333;
+  PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, a, ia, ja, NULL, &nrhs, iparm, &msglvl, (double*)y, x, &error);
+
+  iparm[7] = maxIterRefinementSteps;
+
+  if (error != 0)
+    printf("Error: Pardiso solve returned non-zero exit code %d.\n", error);
+
+  if (verbose >= 2)
+    printf("Solve completed.\n"); 
+
+  return error;
 }
 
 MKL_INT PardisoSolver::SolveLinearSystemMultipleRHS(double * x, const double * rhs, int numRHS)

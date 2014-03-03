@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
+ * "isotropic hyperelastic FEM" library , Copyright (C) 2013 USC         *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Fun Shing Sin                            *
@@ -30,11 +30,18 @@
 #include "StVKIsotropicMaterial.h"
 #include "volumetricMeshENuMaterial.h"
 
-StVKIsotropicMaterial::StVKIsotropicMaterial(TetMesh * tetMesh) 
+StVKIsotropicMaterial::StVKIsotropicMaterial(TetMesh * tetMesh, int enableCompressionResistance_, double compressionResistance_) : IsotropicMaterialWithCompressionResistance(enableCompressionResistance_), compressionResistance(compressionResistance_)
 {
+  //printf("Entering StVKIsotropicMaterial::StVKIsotropicMaterial\n");
+  //printf("Enable compression resistance is: %d. Compression resistance is: %G\n", enableCompressionResistance, compressionResistance);
   int numElements = tetMesh->getNumElements();
   lambdaLame = (double*) malloc (sizeof(double) * numElements);
   muLame = (double*) malloc (sizeof(double) * numElements);
+
+  if (enableCompressionResistance)
+    EdivNuFactor = (double*) malloc (sizeof(double) * numElements);
+  else
+    EdivNuFactor = NULL;
 
   for(int el=0; el<numElements; el++)
   {
@@ -42,19 +49,26 @@ StVKIsotropicMaterial::StVKIsotropicMaterial(TetMesh * tetMesh)
     VolumetricMesh::ENuMaterial * eNuMaterial = downcastENuMaterial(material);
     if (eNuMaterial == NULL)
     {
-      printf("Error: mesh does not consist of E, nu materials.\n");
+      printf("Error: StVKIsotropicMaterial: mesh does not consist of E, nu materials.\n");
       throw 1;
     }
 
     lambdaLame[el] = eNuMaterial->getLambda();
     muLame[el] = eNuMaterial->getMu();
+
+    if (enableCompressionResistance)
+    {
+      EdivNuFactor[el] = compressionResistance * eNuMaterial->getE() / (1.0 - 2.0 * eNuMaterial->getNu());
+      //printf("Setting EdivNuFactor[%d]=%G\n", el, EdivNuFactor[el]);
+    }
   }
 }
 
 StVKIsotropicMaterial::~StVKIsotropicMaterial() 
 {
-  free(lambdaLame);
+  free(EdivNuFactor);
   free(muLame);
+  free(lambdaLame);
 }
 
 double StVKIsotropicMaterial::ComputeEnergy(int elementIndex, double * invariants)
@@ -64,15 +78,50 @@ double StVKIsotropicMaterial::ComputeEnergy(int elementIndex, double * invariant
   //double IIIC = invariants[2]; // not needed for StVK
 
   double energy = 0.125 * lambdaLame[elementIndex] * (IC - 3.0) * (IC - 3.0) + 0.25 * muLame[elementIndex] * (IIC - 2.0 * IC + 3.0);
+
+  AddCompressionResistanceEnergy(elementIndex, invariants, &energy);
+
+/*
+  if (enableInversionPrevention)
+  {
+    double IIIC = invariants[2]; 
+    double J = sqrt(IIIC);
+
+    if (J < 1)
+    {
+      double fac = (J - 1) * (J - 1) * (J - 1) / (6 * 6 * 6);
+      energy += -EdivNuFactor[elementIndex] * fac / 12;
+    }
+  }  
+*/
+
   return energy;
 }
 
 void StVKIsotropicMaterial::ComputeEnergyGradient(int elementIndex, double * invariants, double * gradient) // invariants and gradient are 3-vectors
 {
+  //printf("Entered StVKIsotropicMaterial::ComputeEnergyGradient\n");
+
   double IC = invariants[0];
   gradient[0] = 0.25 * lambdaLame[elementIndex] * (IC - 3.0) - 0.5 * muLame[elementIndex];
   gradient[1] = 0.25 * muLame[elementIndex];
   gradient[2] = 0.0;
+
+  AddCompressionResistanceGradient(elementIndex, invariants, gradient);
+
+/*
+  if (enableInversionPrevention)
+  {
+    double IIIC = invariants[2]; 
+    double J = sqrt(IIIC);
+
+    if (J < 1)
+    {
+      double fac = (J - 1) * (J - 1) / (6 * 6);
+      gradient[2] += -EdivNuFactor[elementIndex] * fac / (8 * J);
+    }
+  }  
+*/
 }
 
 void StVKIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double * invariants, double * hessian) // invariants is a 3-vector, hessian is a 3x3 symmetric matrix, unrolled into a 6-vector, in the following order: (11, 12, 13, 22, 23, 33).
@@ -89,5 +138,23 @@ void StVKIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double * inva
   hessian[4] = 0.0;
   // 33
   hessian[5] = 0.0;
+
+  AddCompressionResistanceHessian(elementIndex, invariants, hessian);
+
+/*
+  if (enableInversionPrevention)
+  {
+    double IIIC = invariants[2]; 
+    double J = sqrt(IIIC);
+
+    if (J < 1)
+      hessian[5] += EdivNuFactor[elementIndex] * (1 - J) * (1 + 11 * J) / (576 * J * J * J);
+  }  
+*/
+}
+
+double StVKIsotropicMaterial::GetCompressionResistanceFactor(int elementIndex)
+{
+  return EdivNuFactor[elementIndex];
 }
 

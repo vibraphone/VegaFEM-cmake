@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
+ * "isotropic hyperelastic FEM" library , Copyright (C) 2013 USC         *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Fun Shing Sin                            *
@@ -30,11 +30,16 @@
 #include "neoHookeanIsotropicMaterial.h"
 #include "volumetricMeshENuMaterial.h"
 
-NeoHookeanIsotropicMaterial::NeoHookeanIsotropicMaterial(TetMesh * tetMesh)
+NeoHookeanIsotropicMaterial::NeoHookeanIsotropicMaterial(TetMesh * tetMesh, int enableCompressionResistance_, double compressionResistance_) : IsotropicMaterialWithCompressionResistance(enableCompressionResistance_), compressionResistance(compressionResistance_)
 {
   int numElements = tetMesh->getNumElements();
   lambdaLame = (double*) malloc (sizeof(double) * numElements);
   muLame = (double*) malloc (sizeof(double) * numElements);
+
+  if (enableCompressionResistance)
+    EdivNuFactor = (double*) malloc (sizeof(double) * numElements);
+  else
+    EdivNuFactor = NULL;
 
   for(int el=0; el<numElements; el++)
   {
@@ -42,17 +47,24 @@ NeoHookeanIsotropicMaterial::NeoHookeanIsotropicMaterial(TetMesh * tetMesh)
     VolumetricMesh::ENuMaterial * eNuMaterial = downcastENuMaterial(material);
     if (eNuMaterial == NULL)
     {
-      printf("Error: mesh does not consist of E, nu materials.\n");
+      printf("Error: NeoHookeanIsotropicMaterial: mesh does not consist of E, nu materials.\n");
       throw 1;
     }
 
     lambdaLame[el] = eNuMaterial->getLambda();
     muLame[el] = eNuMaterial->getMu();
+
+    if (enableCompressionResistance)
+    {
+      EdivNuFactor[el] = compressionResistance * eNuMaterial->getE() / (1.0 - 2.0 * eNuMaterial->getNu());
+      //printf("Setting EdivNuFactor[%d]=%G\n", el, EdivNuFactor[el]);
+    }
   }
 }
 
 NeoHookeanIsotropicMaterial::~NeoHookeanIsotropicMaterial()
 {
+  free(EdivNuFactor);
   free(lambdaLame);
   free(muLame);
 }
@@ -68,15 +80,22 @@ double NeoHookeanIsotropicMaterial::ComputeEnergy(int elementIndex, double * inv
   // threshold was set), so normally this is not an issue.
 
   double energy = 0.5 * muLame[elementIndex] * (IC - 3.0) - muLame[elementIndex] * logJ + 0.5 * lambdaLame[elementIndex] * logJ * logJ;
+
+  AddCompressionResistanceEnergy(elementIndex, invariants, &energy);
+
   return energy;
 }
 
 void NeoHookeanIsotropicMaterial::ComputeEnergyGradient(int elementIndex, double * invariants, double * gradient) // invariants and gradient are 3-vectors
 {
+  //printf("Entered NeoHookeanIsotropicMaterial::ComputeEnergyGradient\n");
+
   double IIIC = invariants[2];
   gradient[0] = 0.5 * muLame[elementIndex];
   gradient[1] = 0.0;
   gradient[2] = (-0.5 * muLame[elementIndex] + 0.25 * lambdaLame[elementIndex] * log(IIIC)) / IIIC;
+
+  AddCompressionResistanceGradient(elementIndex, invariants, gradient);
 }
 
 void NeoHookeanIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double * invariants, double * hessian) // invariants is a 3-vector, hessian is a 3x3 symmetric matrix, unrolled into a 6-vector, in the following order: (11, 12, 13, 22, 23, 33).
@@ -94,5 +113,12 @@ void NeoHookeanIsotropicMaterial::ComputeEnergyHessian(int elementIndex, double 
   hessian[4] = 0.0;
   // 33
   hessian[5] = (0.25 * lambdaLame[elementIndex] + 0.5 * muLame[elementIndex] - 0.25 * lambdaLame[elementIndex] * log(IIIC)) / (IIIC * IIIC);
+
+  AddCompressionResistanceHessian(elementIndex, invariants, hessian);
+}
+
+double NeoHookeanIsotropicMaterial::GetCompressionResistanceFactor(int elementIndex)
+{
+  return EdivNuFactor[elementIndex];
 }
 

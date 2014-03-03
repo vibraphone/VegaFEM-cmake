@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
  * "loadList" library , Copyright (C) 2007 CMU, 2009 MIT                 *
  * All rights reserved.                                                  *

@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "sceneObject" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC    *
+ * "sceneObject" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC    *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Daniel Schroeder                         *
@@ -38,7 +38,8 @@
 SceneObject::SceneObject(char * filename):
   mesh(NULL), meshRender(NULL), displayList(0), displayListExists(false), displayListEdges(0), displayListEdgesExists(false)
 { 
-  mesh = new ObjMesh(filename);
+  int verbose = 0;
+  mesh = new ObjMesh(filename, verbose);
 
   int encStart = strlen(filename) - 4;
   if ((encStart > 0) && (strcmp(&filename[encStart], ".enc") == 0))
@@ -50,6 +51,10 @@ SceneObject::SceneObject(char * filename):
   }
 
   meshRender = new ObjMeshRender(mesh);
+  if (meshRender->numTextures() > 0)
+    hasTextures_ = true;
+  else
+    hasTextures_ = false;
 
   BuildFaceNormals();
 
@@ -187,11 +192,16 @@ void SceneObject::RenderShadow(double ground[4], double light[4])
   
   SetShadowingModelviewMatrix(ground, light);
 
-  //meshRender->render(OBJMESHRENDER_TRIANGLES, OBJMESHRENDER_SMOOTH | OBJMESHRENDER_MATERIAL);
+  bool texEnabled = AreTexturesEnabled();
+  DisableTextures();
+
   if(displayListExists)
     glCallList(displayList);
   else
     meshRender->render(OBJMESHRENDER_TRIANGLES, renderMode);
+
+  if (texEnabled)
+    EnableTextures();
 
   glPopMatrix();
 }
@@ -272,6 +282,11 @@ void SceneObject::HighlightVertex(int i)
   glEnd();
 }
 
+bool SceneObject::AreTexturesEnabled()
+{
+  return ((renderMode && OBJMESHRENDER_TEXTURE) != 0);
+}
+
 void SceneObject::EnableTextures()
 {
   renderMode = renderMode | OBJMESHRENDER_TEXTURE;
@@ -282,9 +297,10 @@ void SceneObject::DisableTextures()
   renderMode = renderMode & (~OBJMESHRENDER_TEXTURE);
 }
 
-int SceneObject::SetUpTextures(LightingModulationType lightingModulation, MipmapType mipmap)
+int SceneObject::SetUpTextures(LightingModulationType lightingModulation, MipmapType mipmap, AnisotropicFilteringType anisotropicFiltering, TextureTransparencyType textureTransparency, std::vector<ObjMeshRender::Texture*> * texturePool, int updatePool)
 {
-  int textureMode = 0; // = OBJMESHRENDER_GL_MODULATE | OBJMESHRENDER_GL_NOMIPMAP;
+  int textureMode = 0; // = OBJMESHRENDER_GL_MODULATE | OBJMESHRENDER_GL_NOMIPMAP | OBJMESHRENDER_GL_ANISOTROPICFILTERING
+
   switch(lightingModulation)
   {
     case REPLACE:
@@ -294,6 +310,7 @@ int SceneObject::SetUpTextures(LightingModulationType lightingModulation, Mipmap
       textureMode |= OBJMESHRENDER_GL_MODULATE;
       break;
   }
+
   switch(mipmap)
   {
     case USEMIPMAP:
@@ -303,11 +320,37 @@ int SceneObject::SetUpTextures(LightingModulationType lightingModulation, Mipmap
       textureMode |= OBJMESHRENDER_GL_NOMIPMAP;
       break;
   }
-  meshRender->loadTextures(textureMode);
-  hasTextures_ = true;
+
+  switch(anisotropicFiltering)
+  {
+    case USEANISOTROPICFILTERING:
+      textureMode |= OBJMESHRENDER_GL_USEANISOTROPICFILTERING;
+      break;
+    case NOANISOTROPICFILTERING:
+      textureMode |= OBJMESHRENDER_GL_NOANISOTROPICFILTERING;
+      break;
+  }
+
+  meshRender->loadTextures(textureMode, texturePool, updatePool);
+  if (meshRender->numTextures() > 0)
+    hasTextures_ = true;
+  else
+    hasTextures_ = false;
+
+  EnableTextures();
+
+  switch(textureTransparency)
+  {
+    case USETEXTURETRANSPARENCY:
+      if (meshRender->maxBytesPerPixelInTextures() == 4)
+        renderMode |= OBJMESHRENDER_TRANSPARENCY;
+      break;     
+    case NOTEXTURETRANSPARENCY:
+      break;
+  }
+
   return 0;
 }
-
 
 void SceneObject::RenderNormals()
 {
@@ -355,4 +398,10 @@ void SceneObject::PrintBitmapInteger(float x, float y, float z, long i)
   PrintBitmapString(x,y,z,s);
 }
 
+void SceneObject::TransformRigidly(double * centerOfMass, double * R)
+{
+  Vec3d cv(centerOfMass);
+  Mat3d Rv(R);
+  mesh->transformRigidly(cv, Rv);
+}
 

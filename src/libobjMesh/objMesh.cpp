@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
+ * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC        *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
@@ -26,6 +26,11 @@
  *                                                                       *
  *************************************************************************/
 
+#ifdef WIN32
+  #pragma warning(disable : 4996)
+  #pragma warning(disable : 4267)
+  #pragma warning(disable : 4244)
+#endif
 #include <float.h>
 #include <math.h>
 #include <string.h>
@@ -38,9 +43,9 @@
 #include <algorithm>
 #include <assert.h>
 #include "macros.h"
-using namespace std;
-
+#include "objMesh-disjointSet.h"
 #include "objMesh.h"
+using namespace std;
 
 ObjMesh::ObjMesh(const std::string & filename_, int verbose)
 {
@@ -48,7 +53,7 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
 
   unsigned int numFaces = 0;
 
-  const int maxline = 1000;
+  const int maxline = 4096;
   std::ifstream ifs(filename.c_str());
   char line[maxline];
 
@@ -78,6 +83,19 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
   {
     lineNum++;
     ifs.getline(line, maxline);
+    if (strlen(line) > 0)
+    {
+      // if ending in '\\', the next line should be concatenated to the current line
+      int lastCharPos = (int)strlen(line)-1;
+      while(line[lastCharPos] == '\\') 
+      {
+        line[lastCharPos] = ' ';  // first turn '\' to ' '
+        char nextline[maxline];
+        ifs.getline(nextline, maxline);
+        strcat(line, nextline);
+        lastCharPos = (int)strlen(line)-1;
+      }
+    }
 
     convertWhitespaceToSingleBlanks(line);
 
@@ -121,10 +139,31 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
     }
     else if (strncmp(line, "g ", 2) == 0)
     {
-      char s[4096];
-      if ((sscanf(line, "g %s\n", s) < 1) && verbose)
-         cout << "Warning:  Empty group name encountered: " << filename << " " << lineNum << endl;
-      std::string name = s;
+      // remove last newline
+      if (strlen(line) > 0)
+      {
+        if (line[strlen(line)-1] == '\n')
+          line[strlen(line)-1] = 0;
+      }
+
+      // remove last carriage return
+      if (strlen(line) > 0)
+      {
+        if (line[strlen(line)-1] == '\r')
+          line[strlen(line)-1] = 0;
+      }
+
+      std::string name;
+      if (strlen(line) < 2)
+      {
+        if (verbose)
+          cout << "Warning:  Empty group name encountered: " << filename << " " << lineNum << endl;
+        name = string("");
+      }
+      else
+        name = string(&line[2]);
+
+      //printf("Detected group: %s\n", &line[2]);
 
       // check if this group already exists
       bool groupFound = false;
@@ -187,7 +226,7 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
         unsigned int tex;
         std::pair< bool, unsigned int > texPos;
         std::pair< bool, unsigned int > normal;
-   
+
         // now, parse curPos
         if (strstr(curPos,"//") != NULL) 
         {
@@ -234,6 +273,25 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
             texPos = make_pair(true, tex);
             normal = make_pair(true, nor);
           }
+        }
+
+        // sanity check
+        if ((pos < 1) || (pos > vertexPositions.size()))
+        {
+          printf("Error: vertex %d is out of bounds.\n", pos);
+          throw 51;
+        }
+
+        if (texPos.first && ((tex < 1) || (tex > textureCoordinates.size())))
+        {
+          printf("Error: texture %d is out of bounds.\n", tex);
+          throw 53;
+        }
+
+        if (normal.first && ((nor < 1) || (nor > normals.size())))
+        {
+          printf("Error: normal %d is out of bounds.\n", nor);
+          throw 52;
         }
 
         // decrease indices to make them 0-indexed
@@ -312,11 +370,11 @@ ObjMesh::ObjMesh(const std::string & filename_, int verbose)
     {
       char mtlFilename[4096];
       strcpy(mtlFilename, filename.c_str());
-      parseMaterials(mtlFilename, &line[7]);
+      parseMaterials(mtlFilename, &line[7], verbose);
     }
-    else if (strncmp(line, "s ", 2) == 0 )
+    else if ((strncmp(line, "s ", 2) == 0 ) || (strncmp(line, "o ", 2) == 0))
     {
-      // ignore 's'
+      // ignore 
       //std::cout << command << " ";
       if (ignoreCounter < 5)
       {
@@ -370,6 +428,8 @@ ObjMesh::ObjMesh(int numVertices, double * vertices, int numTriangles, int * tri
     face.addVertex(Vertex(triangles[3*i+2]));
     addFaceToGroup(face, 0);
   }
+
+  computeBoundingBox();
 }
 
 std::vector<std::string> ObjMesh::getGroupNames() const
@@ -576,7 +636,7 @@ double ObjMesh::getDiameter() const
   return diameter;
 }
 
-void ObjMesh::save(const string & filename, int outputMaterials) const
+void ObjMesh::save(const string & filename, int outputMaterials, int verbose) const
 {
   string materialFilename;
   string materialFilenameLocal;
@@ -598,11 +658,14 @@ void ObjMesh::save(const string & filename, int outputMaterials) const
     materialFilenameLocal = string(beginString);
   }
 
-  cout << "Writing obj to file " << filename << " ." << endl;
-  if (outputMaterials)
-    cout << "Writing materials to " << materialFilename << " ." << endl;
-  else
-    cout << "No material output." << endl;
+  if (verbose >= 1)
+  {
+    cout << "Writing obj to file " << filename << " ." << endl;
+    if (outputMaterials)
+      cout << "Writing materials to " << materialFilename << " ." << endl;
+    else
+      cout << "No material output." << endl;
+  }
 
   // open file
   ofstream fout(filename.c_str());
@@ -717,6 +780,11 @@ void ObjMesh::save(const string & filename, int outputMaterials) const
       fout << "Kd " << Kd[0] << " " << Kd[1] << " " << Kd[2] << endl;
       fout << "Ks " << Ks[0] << " " << Ks[1] << " " << Ks[2] << endl;
       fout << "Ns " << shininess << endl;
+      if (materials[i].hasTextureFilename())
+      {
+        std::string textureFilename = materials[i].getTextureFilename();
+        fout << "map_Kd " << textureFilename << endl;
+      }
       fout << endl;
     }
 
@@ -944,127 +1012,115 @@ void ObjMesh::saveToSmesh(const std::string & filename) const
   fout.close();
 }
 
-ObjMesh * ObjMesh::splitIntoConnectedComponents() const
+ObjMesh * ObjMesh::splitIntoConnectedComponents(int withinGroupsOnly, int verbose) const
 {
-  typedef map< int, set<int> > componentType;
-  componentType components;
-  int maxID = -1;
+  // withinGroupsOnly:
+  // 0: off (global split; may fuse texture coordinates)
+  // 1: intersect global connected components with groups
+  // 2: break each group into connected components, regardless of the rest of the mesh
 
+  vector<DisjointSet*> dset;
+  if (withinGroupsOnly == 2)
+  {
+    for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    {
+      DisjointSet * groupDisjointSet = new DisjointSet(getNumVertices());
+      groupDisjointSet->MakeSet();
+      dset.push_back(groupDisjointSet);
+    }
+  }
+  else
+  {
+    DisjointSet * globalDisjointSet = new DisjointSet(getNumVertices());
+    globalDisjointSet->MakeSet();
+    for(unsigned int i=0; i < groups.size(); i++) // over all groups
+      dset.push_back(globalDisjointSet);
+  }
+
+  // build vertex connections
   for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
+    if (verbose == 0)
+    {
+      printf("%d ", i);
+      fflush(NULL);
+    }
+
     for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
     {
-      if (j % 100 == 1)
-        printf("Processing group %d / %d, face %d / %d . Current num groups: %d\n", i, (int)groups.size(), j, (int)groups[i].getNumFaces(), (int)components.size());
-      const Face * face = groups[i].getFaceHandle(j);
-      if (face->getNumVertices() < 3)
+      if (verbose)
       {
-        printf("Warning: encountered a face with fewer than 3 vertices.\n");
+        if (j % 100 == 1)
+          printf("Processing group %d / %d, face %d / %d.\n", i, (int)groups.size(), j, (int)groups[i].getNumFaces()); 
       }
-  
-      set<int> belongingComponents;
+      const Face * face = groups[i].getFaceHandle(j);
       int faceDegree = (int)face->getNumVertices();
-      vector<int> freeVertices;
-      for(int vtx=0; vtx<faceDegree; vtx++)
+      for(int vtx=0; vtx<faceDegree-1; vtx++)
       {
         int vertex = face->getVertex(vtx).getPositionIndex();
-
-        //printf("Processing vertex %d, absolute %d\n", vtx, vertex);
-
-        // seek for "vertex" in all the vertex groups
-        int vertexFound = 0;
-        for(componentType::iterator iter = components.begin(); iter != components.end(); iter++)
-        {
-          if (iter->second.find(vertex) != iter->second.end())
-          {
-            // found the vertex in an existing component
-            belongingComponents.insert(iter->first);
-            //printf("Vertex detected in component %d .\n", iter->first);
-            vertexFound = 1;
-          } 
-        }        
-
-        if (!vertexFound)
-        {
-          freeVertices.push_back(vertex);
-          //printf("Vertex undetected (free).\n");
-        }
-      }
-
-      if (belongingComponents.size() == 0)
-      {
-        // new connected component
-        int ID = maxID + 1;
-        maxID = ID;
-
-        //printf("Detected new component, ID: %d\n", ID);
-  
-        set<int> newComponent;
-        for(int vtx=0; vtx<faceDegree; vtx++)
-        {
-          int vertex = face->getVertex(vtx).getPositionIndex();
-          newComponent.insert(vertex);
-        }
-        components.insert(make_pair(ID, newComponent));
-      }
-      else 
-      {
-        int firstComponent = *(belongingComponents.begin());
-        map<int, set<int> > :: iterator zeroIter = components.find(firstComponent);
-
-        // add free vertices into the first component
-        for(vector<int> :: iterator iter = freeVertices.begin(); iter != freeVertices.end(); iter++)
-          zeroIter->second.insert(*iter);         
-
-        // merge components
-        if (belongingComponents.size() >= 2)
-        {
-          //printf("Merging %d components...\n", (int)belongingComponents.size());
-          // merge all components in "belongingComponents" into the first component
-          set<int> :: iterator secondElement = belongingComponents.begin();
-          secondElement++;
-          for(set<int> :: iterator setIter = secondElement; setIter != belongingComponents.end(); setIter++)
-          {
-            // merge into 0
-            map<int, set<int> > :: iterator componentIter = components.find(*setIter);
-            for(set<int> :: iterator iter = componentIter->second.begin(); iter != componentIter->second.end(); iter++)
-              zeroIter->second.insert(*iter);  
-          }
-
-          // erase
-          for(set<int> :: iterator setIter = secondElement; setIter != belongingComponents.end(); setIter++)
-          {
-            map<int, set<int> > :: iterator componentIter = components.find(*setIter);
-            components.erase(componentIter);
-          }
-        }
+        int vertexNext = face->getVertex(vtx+1).getPositionIndex();
+        dset[i]->UnionSet(vertex, vertexNext);
       }
     }
-
-  // build renumbering for groups
-  map<int,int> sortedID;
-  int groupCounter = 0;
-  for(componentType::iterator iter = components.begin(); iter != components.end(); iter++)
-  {
-    sortedID.insert(make_pair(iter->first, groupCounter));
-    groupCounter++;
   }
-  printf("Detected %d connected components.\n", groupCounter);
+  if (verbose == 0)
+    printf("\n");
 
-  // build vertex group locations
-  map<int, int> vertexGroup;
-  for(componentType::iterator componentIter = components.begin(); componentIter != components.end(); componentIter++)
+  // determine group for every face
+  int numOutputGroups = 0;
+  vector<map<int, int> *> representatives;
+  if (withinGroupsOnly == 2)
   {
-    for(set<int> :: iterator setIter = componentIter->second.begin(); setIter != componentIter->second.end(); setIter++)
+    for(unsigned int i=0; i < groups.size(); i++) // over all groups
     {
-      int vertex = *setIter;
-      map<int, int> :: iterator vertexIterator = vertexGroup.find(vertex);
-      if (vertexIterator != vertexGroup.end())
-      {
-        printf("Error: encountered a vertex in more than one group (internal error).\n");
-      }
-      vertexGroup.insert(make_pair(vertex, sortedID[componentIter->first]));
+      map<int, int> * groupMap = new map<int,int>();
+      representatives.push_back(groupMap);
     }
   }
+  else
+  {
+    map<int, int> * globalMap = new map<int,int>();
+    for(unsigned int i=0; i < groups.size(); i++) // over all groups
+      representatives.push_back(globalMap);
+  }
+
+  vector<vector<int> > faceGroup;
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
+    if (verbose == 0)
+    {
+      printf("%d ", i);
+      fflush(NULL);
+    }
+
+    faceGroup.push_back(vector<int>());
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      if (verbose)
+      {
+        if (j % 100 == 1)
+          printf("Processing group %d / %d, face %d / %d.\n", i, (int)groups.size(), j, (int)groups[i].getNumFaces()); 
+      }
+      const Face * face = groups[i].getFaceHandle(j);
+      int rep = dset[i]->FindSet(face->getVertex(0).getPositionIndex());
+
+      map<int,int> :: iterator iter = representatives[i]->find(rep);
+      int groupID;
+      if (iter == representatives[i]->end())
+      {
+        groupID = numOutputGroups;
+        representatives[i]->insert(make_pair(rep, numOutputGroups));
+        numOutputGroups++;
+      }
+      else
+        groupID = iter->second;
+
+      faceGroup[i].push_back(groupID);
+    }
+  }
+
+  if (verbose == 0)
+    printf("\n");
 
   // build output mesh
   ObjMesh * output = new ObjMesh();
@@ -1085,33 +1141,76 @@ ObjMesh * ObjMesh::splitIntoConnectedComponents() const
   for(unsigned int i=0; i<getNumMaterials(); i++)
     output->addMaterial(getMaterial(i));
 
+  // create output groups, taking into account potential splitting in case: withinGroupsOnly == 1
+  int groupCount = 0;
+  map <pair<int, int>, int> outputGroup;
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      int groupID = faceGroup[i][j];
+      if (withinGroupsOnly == 1)
+      {
+        if (outputGroup.find(make_pair(i, groupID)) == outputGroup.end())
+        {
+          outputGroup.insert(make_pair(make_pair(i, groupID), groupCount));
+          groupCount++;
+        }
+      }
+      else
+      {
+        outputGroup.insert(make_pair(make_pair(i, groupID), groupID));
+      }
+    }
+  }
+
+  if (withinGroupsOnly == 1)
+    numOutputGroups = groupCount;
+
   // create groups
-  groupCounter = 0;
-  for(componentType::iterator iter = components.begin(); iter != components.end(); iter++)
+  for(int i=0; i<numOutputGroups; i++)
   {
     char s[96];
-    sprintf(s, "group%05d", groupCounter);
+    sprintf(s, "group%05d", i);
     output->addGroup(string(s));
-    groupCounter++;
   }
 
   // add faces to groups
   for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
     for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
     {
       const Face * face = groups[i].getFaceHandle(j);
-      int faceDegree = (int)face->getNumVertices();
-      int groupID = vertexGroup[face->getVertex(0).getPositionIndex()];
-      for(int vtx=0; vtx<faceDegree; vtx++)
+      int connectedGroupID = faceGroup[i][j];
+
+      map<pair<int,int>, int> :: iterator iter = outputGroup.find(make_pair(i, connectedGroupID));
+      if (iter == outputGroup.end())
       {
-        int vertex = face->getVertex(vtx).getPositionIndex();
-        if (vertexGroup[vertex] != groupID)
-        {
-          printf("Error: encountered a face belonging to more than one group (internal error).\n");
-        }
+        printf("Error: encountered unhandled (input group, connected group) case.\n");
       }
+      int groupID = iter->second;
+
       output->addFaceToGroup(*face, groupID);
+
+      // set the material for this group
+      Group * outputGroupHandle = (Group*) output->getGroupHandle(groupID);
+      outputGroupHandle->setMaterialIndex(groups[i].getMaterialIndex());
     }
+  }
+
+  output->computeBoundingBox();
+
+  // de-allocate
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
+    delete(representatives[i]);
+    representatives[i] = NULL;
+    delete(dset[i]);
+    dset[i] = NULL;
+
+    if (withinGroupsOnly != 2)
+      break;
+  }
 
   return output;
 }
@@ -1229,10 +1328,19 @@ ObjMesh * ObjMesh::extractGroup(unsigned int groupID, int keepOnlyUsedNormals, i
     output->addMaterial(getMaterial(i));
 
   // add a single group
-  char s[96];
+  char s[4096];
   //sprintf(s, "group%05d", groupID);
   sprintf(s, "%s", groups[groupID].getName().c_str());
   output->addGroup(s);
+
+  // set material for the extracted group
+  unsigned int newGroupIndex = output->groups.size() - 1;
+  if (newGroupIndex < 0)
+  {
+    printf("Error: failed to add a new group to the mesh.\n");
+    exit(0);
+  }
+  output->groups[newGroupIndex].setMaterialIndex(groups[groupID].getMaterialIndex());
 
   // add faces to the group
   for (unsigned int j=0; j < groups[groupID].getNumFaces(); j++) // over all faces
@@ -1266,6 +1374,7 @@ ObjMesh * ObjMesh::extractGroup(unsigned int groupID, int keepOnlyUsedNormals, i
     output->addFaceToGroup(newFace, 0);
   }
 
+  output->computeBoundingBox();
   return output;
 }
 
@@ -1359,9 +1468,11 @@ void ObjMesh::scaleUniformly(const Vec3d & center, double factor)
 {
   for (unsigned int i=0; i < vertexPositions.size(); i++) // over all vertices
     vertexPositions[i] = center + factor * (vertexPositions[i] - center);
+
+  computeBoundingBox();
 }
 
-void ObjMesh::transformRigidly(const Mat3d & rotation, const Vec3d & translation)
+void ObjMesh::transformRigidly(const Vec3d & translation, const Mat3d & rotation)
 {
   for (unsigned int i=0; i < vertexPositions.size(); i++) // over all vertices
   {
@@ -1374,6 +1485,16 @@ void ObjMesh::transformRigidly(const Mat3d & rotation, const Vec3d & translation
     Vec3d rotatedNormal = rotation * normals[i];
     normals[i] = rotatedNormal;
   }
+
+  computeBoundingBox();
+}
+
+void ObjMesh::deform(double * u)
+{
+  for (unsigned int i=0; i < vertexPositions.size(); i++) // over all vertices
+    vertexPositions[i] += Vec3d(&u[3*i]);
+  
+  computeBoundingBox();
 }
 
 double ObjMesh::computeVolume() const
@@ -2478,7 +2599,7 @@ void ObjMesh::dirname(const char * path, char * result)
   }
 }
 
-void ObjMesh::parseMaterials(const char * objMeshFilename, const char * materialFilename)
+void ObjMesh::parseMaterials(const char * objMeshFilename, const char * materialFilename, int verbose)
 {
   FILE * file;
   char buf[128];
@@ -2607,14 +2728,14 @@ void ObjMesh::parseMaterials(const char * objMeshFilename, const char * material
       break;
 
       case 'm':
-        // We treat all texture maps (map_Ka, map_Kd, etc.) interchangibly.
-
-        fgets_(buf, sizeof(buf), file);
-        sscanf(buf, "%s %s", buf, buf);
-        textureFile = string(buf);
-
-        printf("Noticed texture %s.\n", textureFile.c_str());
-
+        if (strcmp(buf, "map_Kd") == 0)
+        {
+          fgets_(buf, sizeof(buf), file);
+          sscanf(buf, "%s %s", buf, buf);
+          textureFile = string(buf);
+          if (verbose)
+            printf("Noticed texture %s.\n", textureFile.c_str());
+        }
       break;
 
       default:
@@ -2827,7 +2948,7 @@ void ObjMesh::exportGeometry(int * numVertices, double ** vertices, int * numTri
 
   if (numTriangles == NULL)
   {
-    printf("Exported %d vertices.\n", *numVertices);
+    //printf("Exported %d vertices.\n", *numVertices);
     return;
   }
 
@@ -2907,7 +3028,7 @@ void ObjMesh::exportGeometry(int * numVertices, double ** vertices, int * numTri
     }
   }
   
-  printf("Exported %d vertices and %d triangles.\n", *numVertices, *numTriangles);
+  //printf("Exported %d vertices and %d triangles.\n", *numVertices, *numTriangles);
 }
 
 void ObjMesh::exportFaceGeometry(int * numVertices, double ** vertices, int * numFaces, int ** faceCardinality, int ** faces) const
@@ -2967,7 +3088,68 @@ void ObjMesh::exportFaceGeometry(int * numVertices, double ** vertices, int * nu
       tc += faceDegree;
     }
 
-  printf("Exported %d vertices and %d faces. Average number of vertices: %G\n", *numVertices, *numFaces, 1.0 * totalCardinality / (*numFaces));
+  //printf("Exported %d vertices and %d faces. Average number of vertices: %G\n", *numVertices, *numFaces, 1.0 * totalCardinality / (*numFaces));
+}
+
+void ObjMesh::exportUVGeometry(int * numUVVertices, double ** UVvertices, int * numUVTriangles, int ** UVTriangles) const // exports the geometry in the texture coordinate space
+{
+  // count num UV triangles
+  *numUVTriangles = 0;
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      if (face->getNumVertices() < 3)
+        continue;
+      *numUVTriangles += face->getNumVertices() - 2;
+    }
+
+  *numUVVertices = 3 * *numUVTriangles;
+  *UVvertices = (double*) malloc (sizeof(double) * 3 * *numUVVertices);
+  *UVTriangles = (int*) malloc (sizeof(int) * 3 * *numUVTriangles);
+
+  int tri = 0;
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+  {
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      if (face->getNumVertices() < 3)
+      {
+        printf("Warning: encountered a face with fewer than 3 vertices.\n");
+        continue;
+      }
+
+      // get the vertices:
+      vector<Vertex> vertices;
+      for(unsigned int k=0; k<face->getNumVertices(); k++)
+        vertices.push_back(face->getVertex(k));
+
+      // triangulate the face
+      for(int i=0; i<(int) face->getNumVertices()-2; i++)
+      {
+        Vec3d uv0 = getTextureCoordinate(vertices[0].getTextureCoordinateIndex());;
+        Vec3d uv1 = getTextureCoordinate(vertices[i+1].getTextureCoordinateIndex());;
+        Vec3d uv2 = getTextureCoordinate(vertices[i+2].getTextureCoordinateIndex());;
+        (*UVvertices)[9*tri+0] = uv0[0];
+        (*UVvertices)[9*tri+1] = uv0[1];
+        (*UVvertices)[9*tri+2] = uv0[2];
+        (*UVvertices)[9*tri+3] = uv1[0];
+        (*UVvertices)[9*tri+4] = uv1[1];
+        (*UVvertices)[9*tri+5] = uv1[2];
+        (*UVvertices)[9*tri+6] = uv2[0];
+        (*UVvertices)[9*tri+7] = uv2[1];
+        (*UVvertices)[9*tri+8] = uv2[2];
+
+        (*UVTriangles)[3*tri+0] = 3*tri+0;
+        (*UVTriangles)[3*tri+1] = 3*tri+1;
+        (*UVTriangles)[3*tri+2] = 3*tri+2;
+
+        // increment triangle counter
+        tri++;
+      }
+    }
+  }
 }
 
 // allows one to query the vertex indices of each triangle
@@ -3107,6 +3289,122 @@ int ObjMesh::removeIsolatedVertices()
   return numIsolatedVertices;
 }
 
+int ObjMesh::removeIsolatedNormals()
+{
+  vector<int> counter(getNumNormals(), 0);
+
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      for(unsigned int k=0; k<face->getNumVertices(); k++)
+      {
+        if (face->getVertex(k).hasNormalIndex())
+          counter[face->getVertex(k).getNormalIndex()]++;
+      }
+    }
+
+  map<int,int> oldToNew;
+  map<int,int> newToOld;
+
+  int numConnectedNormals = 0;
+  for(unsigned int i=0; i<getNumNormals(); i++)
+  {
+    if (counter[i] != 0)
+    {
+      oldToNew.insert(make_pair(i, numConnectedNormals));
+      newToOld.insert(make_pair(numConnectedNormals, i));
+      numConnectedNormals++;
+    }
+  }
+
+  int numOriginalNormals = getNumNormals();
+  int numIsolatedNormals = numOriginalNormals - numConnectedNormals;
+
+  // relink normals, remove old normals
+  for(int i=0; i<numConnectedNormals; i++)
+    normals[i] = normals[newToOld[i]];
+
+  for(int i=numConnectedNormals; i<numOriginalNormals; i++)
+    normals.pop_back();
+
+  // renumber normals inside faces
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      for(unsigned int k=0; k<face->getNumVertices(); k++)
+      {
+        Vertex * vertex = (Vertex*) face->getVertexHandle(k);
+        if (vertex->hasNormalIndex())
+        {
+          int oldNormalIndex = vertex->getNormalIndex();
+          vertex->setNormalIndex(oldToNew[oldNormalIndex]);
+        }
+      }
+    }
+ 
+  return numIsolatedNormals;
+}
+
+int ObjMesh::removeIsolatedTextureCoordinates()
+{
+  vector<int> counter(getNumTextureCoordinates(), 0);
+
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      for(unsigned int k=0; k<face->getNumVertices(); k++)
+      {
+        if (face->getVertex(k).hasTextureCoordinateIndex())
+          counter[face->getVertex(k).getTextureCoordinateIndex()]++;
+      }
+    }
+
+  map<int,int> oldToNew;
+  map<int,int> newToOld;
+
+  int numConnectedTextureCoordinates = 0;
+  for(unsigned int i=0; i<getNumTextureCoordinates(); i++)
+  {
+    if (counter[i] != 0)
+    {
+      oldToNew.insert(make_pair(i, numConnectedTextureCoordinates));
+      newToOld.insert(make_pair(numConnectedTextureCoordinates, i));
+      numConnectedTextureCoordinates++;
+    }
+  }
+
+  int numOriginalTextureCoordinates = getNumTextureCoordinates();
+  int numIsolatedTextureCoordinates = numOriginalTextureCoordinates - numConnectedTextureCoordinates;
+
+  // relink textureCoordinates, remove old textureCoordinates
+  for(int i=0; i<numConnectedTextureCoordinates; i++)
+    textureCoordinates[i] = textureCoordinates[newToOld[i]];
+
+  for(int i=numConnectedTextureCoordinates; i<numOriginalTextureCoordinates; i++)
+    textureCoordinates.pop_back();
+
+  // renumber textureCoordinates inside faces
+  for(unsigned int i=0; i < groups.size(); i++) // over all groups
+    for (unsigned int j=0; j < groups[i].getNumFaces(); j++) // over all faces
+    {
+      const Face * face = groups[i].getFaceHandle(j);
+      for(unsigned int k=0; k<face->getNumVertices(); k++)
+      {
+        Vertex * vertex = (Vertex*) face->getVertexHandle(k);
+        if (vertex->hasTextureCoordinateIndex())
+        {
+          int oldTextureCoordinateIndex = vertex->getTextureCoordinateIndex();
+          vertex->setTextureCoordinateIndex(oldToNew[oldTextureCoordinateIndex]);
+        }
+      }
+    }
+ 
+  return numIsolatedTextureCoordinates;
+}
+
 void ObjMesh::mergeGroups(const vector<int> & groupIndicesIn)
 {
   if (groupIndicesIn.size() < 1)
@@ -3194,5 +3492,53 @@ void ObjMesh::fgets_(char * s, int n, FILE * stream)
   if (result == NULL)
     printf("Warning: bad input file syntax. fgets_ returned NULL.\n");
   return;
+}
+
+unsigned int ObjMesh::getGroupIndex(const std::string name) const
+{
+  int count = 0;
+  for(std::vector<Group>::const_iterator itr = groups.begin(); itr != groups.end(); itr++)
+  {
+    if (itr->getName() == name)
+      return count;
+    count++;
+  }
+
+  std::ostringstream oss;
+  oss << "Invalid group name: '" << name << "'.";
+  throw ObjMeshException(oss.str());
+
+  return 0;
+}
+
+void ObjMesh::removeGroup(const int groupIndex)
+{
+  groups[groupIndex] = groups[groups.size() - 1];
+  groups.pop_back();
+  computeBoundingBox();
+}
+ 
+void ObjMesh::removeGroup(const std::string name)
+{
+  int groupIndex = getGroupIndex(name);
+  removeGroup(groupIndex);
+}
+
+void ObjMesh::removeAllGroups()
+{
+  groups.clear();
+  computeBoundingBox();
+}
+
+// 0 = no group uses a material that references a texture image, 1 = otherwise
+int ObjMesh::usesTextureMapping()
+{
+  int result = 0;
+  for(std::vector<Group>::const_iterator itr = groups.begin(); itr != groups.end(); itr++)
+  {
+    const Material * material = getMaterialHandle(itr->getMaterialIndex());
+    result = result | material->hasTextureFilename();
+  }
+  return result;
 }
 

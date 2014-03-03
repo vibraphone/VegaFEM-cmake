@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "isotropic hyperelastic FEM" library , Copyright (C) 2012 USC         *
+ * "isotropic hyperelastic FEM" library , Copyright (C) 2013 USC         *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code authors: Jernej Barbic, Fun Shing Sin                            *
@@ -29,10 +29,10 @@
 #include "isotropicHyperelasticFEM.h"
 #include "matrixIO.h"
 
-IsotropicHyperelasticFEM::IsotropicHyperelasticFEM(TetMesh * tetMesh_, IsotropicMaterial * isotropicMaterial_, double principalStretchThreshold_, bool addGravity_, double g_) :
+IsotropicHyperelasticFEM::IsotropicHyperelasticFEM(TetMesh * tetMesh_, IsotropicMaterial * isotropicMaterial_, double inversionThreshold_, bool addGravity_, double g_) :
   tetMesh(tetMesh_),
   isotropicMaterial(isotropicMaterial_),
-  principalStretchThreshold(principalStretchThreshold_),
+  inversionThreshold(inversionThreshold_),
   addGravity(addGravity_), 
   g(g_)
 {
@@ -41,6 +41,8 @@ IsotropicHyperelasticFEM::IsotropicHyperelasticFEM(TetMesh * tetMesh_, Isotropic
     printf("Error in IsotropicHyperelasticFEM constructor: tets must have 4 vertices.\n");
     throw 1;
   }
+
+  //printf("Entering IsotropicHyperelasticFEM::IsotropicHyperelasticFEM. Num vertices: %d. Num tets: %d.\n", tetMesh->getNumVertices(), tetMesh->getNumElements()); 
 
   int numElements = tetMesh->getNumElements();
   int numVertices = tetMesh->getNumVertices();
@@ -181,6 +183,7 @@ double IsotropicHyperelasticFEM::ComputeEnergy(double * u)
 */
 void IsotropicHyperelasticFEM::ComputeForces(double * u, double * internalForces)
 {
+  //printf("Entering IsotropicHyperelasticFEM::ComputeForces\n"); 
   int computationMode = IsotropicHyperelasticFEM::COMPUTE_INTERNALFORCES;
   GetEnergyAndForceAndTangentStiffnessMatrixHelper(u, NULL, internalForces, NULL, computationMode);
 }
@@ -396,6 +399,9 @@ void IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperP
 */
 int IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWorkhorse(int startEl, int endEl, double * u, double * energy, double * internalForces, SparseMatrix * tangentStiffnessMatrix, int computationMode)
 {
+  //printf("Entering IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWorkhorse\n"); 
+  //printf("inversionThreshold=%G\n", inversionThreshold);
+
   int numElementVertices = tetMesh->getNumElementVertices();
   double energyResult = 0.0;
   //bool dropBelowThreshold = false; // becomes true when a principal stretch falls below the threshold; only used for printing out informative comments
@@ -452,17 +458,20 @@ int IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWo
 
     // clamp fHat if below the principal stretch threshold
     double fHat[3];
+    int clamped = 0;
     for(int i = 0; i < 3; i++)
     {
-      if(Fhats[el][i] < principalStretchThreshold)
+      if(Fhats[el][i] < inversionThreshold)
       {
         //dropBelowThreshold = true;
-        Fhats[el][i] = principalStretchThreshold;
+        Fhats[el][i] = inversionThreshold;
+        clamped |= (1 << i);
       }
     }
     fHat[0] = Fhats[el][0];
     fHat[1] = Fhats[el][1];
     fHat[2] = Fhats[el][2];
+    clamped = 0; // disable clamping
 
     // query the user-provided isotropic material to compute the strain energy
     if (computationMode & COMPUTE_ENERGY)
@@ -536,7 +545,7 @@ int IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWo
        */
 
       double K[144];
-      ComputeTetK(el, K);
+      ComputeTetK(el, K, clamped);
 
       // write matrices in place
       for(int vtxIndexA=0; vtxIndexA<4; vtxIndexA++)
@@ -561,7 +570,7 @@ int IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWo
   }
 
   //if (dropBelowThreshold)
-  //  printf("Principal stretch dropped below %f\n", principalStretchThreshold);
+  //  printf("Principal stretch dropped below %f\n", inversionThreshold);
 
   if (computationMode & COMPUTE_ENERGY)
     *energy = energyResult;
@@ -707,8 +716,17 @@ void IsotropicHyperelasticFEM::Compute_dFdU()
   respect to the deformation gradient F).
 
   The idea is that K = dG/du = (dG/dF)*(dF/du) = [(dP/dF)*Bm]*(dF/du).
+
+  Parameter clamped tells the routine that the element is in the inversion handling
+  regime where the singular values were clamped. The routine then computes correct
+  K for this regime. I.e., if a singular value is below the clamping threshold, then
+  altering this singular value has no effect on the internal forces, hence stiffness
+  in that direction is zero.
+  first bit of clamped: singular value 0 was clamped, 1=YES, 0=NO
+  second bit of clamped: singular value 1 was clamped, 1=YES, 0=NO
+  third bit of clamped: singular value 2 was clamped, 1=YES, 0=NO
  */
-void IsotropicHyperelasticFEM::ComputeTetK(int el, double K[144])
+void IsotropicHyperelasticFEM::ComputeTetK(int el, double K[144], int clamped)
 {
   /*
     dP/dF is a column major matrix, but is stored as a 1D vector
@@ -721,10 +739,10 @@ void IsotropicHyperelasticFEM::ComputeTetK(int el, double K[144])
   double dPdF[81]; //in 9x9 matrix format
   double dGdF[81]; //in 9x9 matrix format
 
-  //dF_dU should be already executed by the constructor before running this function
-  Compute_dPdF(el, dPdF);
+  Compute_dPdF(el, dPdF, clamped);
   Compute_dGdF(&(areaWeightedVertexNormals[4 * el + 0]), &(areaWeightedVertexNormals[4 * el + 1]),
                &(areaWeightedVertexNormals[4 * el + 2]), dPdF, dGdF);
+  //dF_dU was already computed by the constructor before calling this function
   double * dFdU = &dFdUs[108 * el];
 
   // K is stored column-major (however, it doesn't matter because K is symmetric)
@@ -847,7 +865,7 @@ inline double IsotropicHyperelasticFEM::gammaValue(int i, int j, double sigma[3]
 
 // gradient of P with respect to F (9x9 matrix, row-major)
 // see [Teran 05]
-void IsotropicHyperelasticFEM::Compute_dPdF(int el, double dPdF[81])
+void IsotropicHyperelasticFEM::Compute_dPdF(int el, double dPdF[81], int clamped)
 {
   double sigma[3] = { Fhats[el][0], Fhats[el][1], Fhats[el][2] };
 
@@ -868,6 +886,8 @@ void IsotropicHyperelasticFEM::Compute_dPdF(int el, double dPdF[81])
   //E[2] = 0.5 * (Fhats[el][2] * Fhats[el][2] - 1);
 
   double gradient[3];
+  isotropicMaterial->ComputeEnergyGradient(el, invariants, gradient);
+
   /*
     in order (11,12,13,22,23,33)
     | 11 12 13 |   | 0 1 2 |
@@ -875,8 +895,23 @@ void IsotropicHyperelasticFEM::Compute_dPdF(int el, double dPdF[81])
     | 31 32 33 |   | 2 4 5 |
   */
   double hessian[6];
-  isotropicMaterial->ComputeEnergyGradient(el, invariants, gradient);
   isotropicMaterial->ComputeEnergyHessian(el, invariants, hessian);
+
+  // modify hessian to compute correct values if in the inversion handling regime
+  if (clamped & 1) // first lambda was clamped (in inversion handling)
+  {
+    hessian[0] = hessian[1] = hessian[2] = 0.0;
+  }
+
+  if (clamped & 2) // second lambda was clamped (in inversion handling)
+  {
+    hessian[1] = hessian[3] = hessian[4] = 0.0;
+  }
+
+  if (clamped & 4) // third lambda was clamped (in inversion handling)
+  {
+    hessian[0] = hessian[1] = hessian[2] = hessian[4] = hessian[5] = 0.0;
+  }
 
   double alpha11 = 2.0 * gradient[0] + 8.0 * sigma1square * gradient[1];
   double alpha22 = 2.0 * gradient[0] + 8.0 * sigma2square * gradient[1];
@@ -1121,8 +1156,8 @@ void IsotropicHyperelasticFEM::ComputeDampingForces(double dampingPsi, double da
      stretches) of F^hat are in descending order and the values 
      can be negative.
 
-     Note that the singular values resulting from regular SVD 
-     must all be non-negative.
+     Note that the singular values resulting from standard SVD 
+     are non-negative.
 
   This implementation follows section 5 of [Irving 04].
   It computes F^T F, and computes its eigenvectors, F^T F = V Fhat^2 V^T . 
@@ -1135,11 +1170,11 @@ void IsotropicHyperelasticFEM::ComputeDampingForces(double dampingPsi, double da
 
 int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Mat3d & V)
 {
-  // The code handles the following necessary special situations (see the code below) :
+  // The code handles the following special situations:
 
   //---------------------------------------------------------
   // 1. det(V) == -1
-  //    - simply multiply a column of V by -1
+  //    - multiply the first column of V by -1
   //---------------------------------------------------------
   // 2. An entry of Fhat is near zero
   //---------------------------------------------------------
@@ -1154,7 +1189,6 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
   Vec3d eigenValues;
   Vec3d eigenVectors[3];
 
-  // note that normalEq is changed after calling eigen_sym
   eigen_sym(normalEq, eigenValues, eigenVectors);
 
   V.set(eigenVectors[0][0], eigenVectors[1][0], eigenVectors[2][0],
@@ -1169,7 +1203,7 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
 
   // Handle situation:
   // 1. det(V) == -1
-  //    - simply multiply a column of V by -1
+  //    - multiply the first column of V by -1
   if (det(V) < 0.0)
   {
     // convert V into a rotation (multiply column 1 by -1)
@@ -1212,7 +1246,7 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
   
   if ((Fhat[0] < modifiedSVD_singularValue_eps) && (Fhat[1] < modifiedSVD_singularValue_eps) && (Fhat[2] < modifiedSVD_singularValue_eps))
   {
-    // extreme case, material has collapsed almost to a point
+    // extreme case, all singular values are small, material has collapsed almost to a point
     // see [Irving 04], p. 4
     U.set(1.0, 0.0, 0.0,
           0.0, 1.0, 0.0,
@@ -1220,6 +1254,8 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
   }
   else 
   {
+    // handle the case where two singular values are small, but the third one is not
+    // handle it by computing two (arbitrary) vectors orthogonal to the eigenvector for the large singular value
     int done = 0;
     for(int dim=0; dim<3; dim++)
     {
@@ -1250,6 +1286,8 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
       }
     }
 
+    // handle the case where one singular value is small, but the other two are not
+    // handle it by computing the cross product of the two eigenvectors for the two large singular values
     if (!done) 
     {
       for(int dim=0; dim<3; dim++)
@@ -1291,13 +1329,13 @@ int IsotropicHyperelasticFEM::ModifiedSVD(Mat3d & F, Mat3d & U, Vec3d & Fhat, Ma
       if (detU < 0.0)
       {
         // tet is inverted
-        // find smallest singular value (they are all non-negative)
+        // find the smallest singular value (they are all non-negative)
         int smallestSingularValueIndex = 0;
         for(int dim=1; dim<3; dim++)
           if (Fhat[dim] < Fhat[smallestSingularValueIndex])
             smallestSingularValueIndex = dim;
 
-        // negate smallest singular value
+        // negate the smallest singular value
         Fhat[smallestSingularValueIndex] *= -1.0;
         U[0][smallestSingularValueIndex] *= -1.0;
         U[1][smallestSingularValueIndex] *= -1.0;

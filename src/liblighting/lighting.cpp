@@ -71,7 +71,7 @@ Lighting::Lighting(char * configFilename)
   if (configFile.parseOptions(configFilename) != 0)
     throw 1;
 
-  configFile.printOptions();
+  //configFile.printOptions();
 
   #define TURNONLIGHT(i)\
    if(lightEnabled[i])\

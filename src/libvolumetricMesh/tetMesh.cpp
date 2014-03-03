@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC *
+ * "volumetricMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -31,7 +31,7 @@
 
 const VolumetricMesh::elementType TetMesh::elementType_ = TET;
 
-TetMesh::TetMesh(char * filename) : VolumetricMesh(filename, 4, &temp)
+TetMesh::TetMesh(char * filename, int verbose) : VolumetricMesh(filename, 4, verbose, &temp)
 {
   if (temp != elementType_)
   {
@@ -40,7 +40,7 @@ TetMesh::TetMesh(char * filename) : VolumetricMesh(filename, 4, &temp)
   }
 }
 
-TetMesh::TetMesh(char * filename, int specialFileType): VolumetricMesh(4)
+TetMesh::TetMesh(char * filename, int specialFileType, int verbose): VolumetricMesh(4)
 {
   double E = 1E8;
   double nu = 0.45;
@@ -55,7 +55,7 @@ TetMesh::TetMesh(char * filename, int specialFileType): VolumetricMesh(4)
   char lineBuffer[1024];
   VolumetricMeshParser parser;
 
-  // first, read the nodes
+  // first, read the vertices
   sprintf(lineBuffer, "%s.node", filename);
   if (parser.open(lineBuffer) != 0)
     throw 2;
@@ -95,6 +95,7 @@ TetMesh::TetMesh(char * filename, int specialFileType): VolumetricMesh(4)
   }
 
   elements = (int**) malloc (sizeof(int*) * numElements);
+  elementMaterial = (int*) malloc (sizeof(int) * numElements);
 
   for(int i=0; i<numElements; i++)
   {
@@ -127,6 +128,14 @@ TetMesh::TetMesh(char * filename, int specialFileType): VolumetricMesh(4)
 TetMesh::TetMesh(int numVertices_, double * vertices_,
                int numElements_, int * elements_,
                double E, double nu, double density): VolumetricMesh(numVertices_, vertices_, numElements_, 4, elements_, E, nu, density) {}
+
+TetMesh::TetMesh(int numVertices_, double * vertices_,
+         int numElements_, int * elements_,
+         int numMaterials_, Material ** materials_,
+         int numSets_, Set ** sets_,
+         int numRegions_, Region ** regions_): 
+  VolumetricMesh(numVertices_, vertices_, numElements_, 4, elements_,
+                 numMaterials_, materials_, numSets_, sets_, numRegions_, regions_) {}
 
 TetMesh::TetMesh(const TetMesh & source): VolumetricMesh(source) {}
 
@@ -389,4 +398,23 @@ void TetMesh::getElementEdges(int el, int * edgeBuffer) const
     edgeBuffer[2*edge+1] = v[edgeMask[edge][1]];
   }
 }
+
+void TetMesh::orient()
+{
+  for(int el=0; el<numElements; el++)
+  {
+    double det = dot(*(getVertex(el, 1)) - *(getVertex(el, 0)), cross(*(getVertex(el, 2)) - *(getVertex(el, 0)), *(getVertex(el, 3)) - *(getVertex(el, 0))));
+
+    if (det < 0)
+    {
+      // reverse tet
+      int * elementVertices = elements[el];
+      // swap 2 and 3
+      int buff = elementVertices[2];
+      elementVertices[2] = elementVertices[3];
+      elementVertices[3] = buff;
+    }
+  }
+}
+
 

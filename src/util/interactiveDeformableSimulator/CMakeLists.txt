@@ -9,11 +9,11 @@ include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libgraph
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libinsertRows
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegrator
+	${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorSparse
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libisotropicHyperelasticFEM
    ${CMAKE_CURRENT_SOURCE_DIR}/../../liblighting
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libloadList
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libmassSpringSystem
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../libmatrix
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libminivector
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libobjMesh
    ${CMAKE_CURRENT_SOURCE_DIR}/../../libperformanceCounter
@@ -27,8 +27,9 @@ include_directories(
 )
 
 add_executable(deformsim interactiveDeformableSimulator.cpp initGraphics.cpp)
-target_link_libraries(deformsim sceneObject integrator elasticForceModel forceModel 
-matrix sparseMatrix loadList insertRows lighting configFile volumetricMesh getopts 
+target_link_libraries(deformsim sceneObject integrator integratorSparse
+elasticForceModel forceModel 
+sparseMatrix loadList insertRows lighting configFile volumetricMesh getopts 
 camera graph isotropicHyperelasticFEM minivector stvk corotationalLinearFEM 
 polarDecomposition massSpringSystem objMesh sparseSolver 
 ${OPENGL_gl_LIBRARY} ${GLUT_glut_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLUI_LIBRARY})

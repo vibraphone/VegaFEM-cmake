@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "StVK" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC           *
+ * "StVK" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC           *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -46,23 +46,23 @@ StVKElementABCD * StVKElementABCDLoader::load(VolumetricMesh * volumetricMesh, u
 
   if (elementType_ == CubicMesh::elementType())
   {
-    printf("Loading cubic mesh integrals...\n");
+    //printf("Loading cubic mesh integrals...\n");
     CubicMesh * cubeMesh = (CubicMesh*) volumetricMesh;
     stVKElementABCD = new StVKCubeABCD(cubeMesh->getCubeSize()); 
   }
 
   if (elementType_ == TetMesh::elementType())
   {
-    printf("Loading tet mesh integrals...\n");
+    //printf("Loading tet mesh integrals...\n");
     TetMesh * tetMesh = (TetMesh*) volumetricMesh;
     if ((loadingFlag & 1) == 0)
     {
-      printf("Using the low-memory coefficient version.\n");
+      //printf("Using the low-memory coefficient version.\n");
       stVKElementABCD = new StVKTetABCD(tetMesh); 
     }
     else
     {
-      printf("Using the high-memory coefficient version.\n");
+      //printf("Using the high-memory coefficient version.\n");
       stVKElementABCD = new StVKTetHighMemoryABCD(tetMesh); 
     }
   }

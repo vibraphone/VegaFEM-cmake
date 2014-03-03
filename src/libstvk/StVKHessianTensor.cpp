@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "StVK" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC           *
+ * "StVK" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC           *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -82,7 +82,7 @@ StVKHessianTensor::StVKHessianTensor(StVKStiffnessMatrix * stVKStiffnessMatrix_)
     VolumetricMesh::ENuMaterial * eNuMaterial = downcastENuMaterial(material);
     if (eNuMaterial == NULL)
     {
-      printf("Error: mesh does not consist of E, nu materials.\n");
+      printf("Error: StVKHessianTensor: mesh does not consist of E, nu materials.\n");
       throw 1;
     }
 
@@ -154,9 +154,10 @@ void StVKHessianTensor::AddTensor3x3x3Block(int v1, int v2, int v3, Vec3d & vec,
 }
 
 
-int StVKHessianTensor::ComputeHessianAtZero()
+int StVKHessianTensor::ComputeHessianAtZero(int verbose)
 {
-  printf("Computing Hessian at zero... Total num elements: %d \n", numElements_);
+  if (verbose)
+    printf("Computing Hessian at zero... Total num elements: %d \n", numElements_);
 
   int * vertices = (int*) malloc (sizeof(int) * numElementVertices);
 
@@ -168,11 +169,13 @@ int StVKHessianTensor::ComputeHessianAtZero()
   for(int el=0; el < numElements_; el++)
   {
     precomputedIntegrals->PrepareElement(el, elIter);
-    if (el % 100 == 1)
+
+    if (verbose && (el % 100 == 1))
     {
       printf("%d ",el);
       fflush(NULL);
     }
+
     for(int ver=0; ver<numElementVertices ;ver++)
       vertices[ver] = volumetricMesh->getVertexIndex(el, ver);
 
@@ -211,7 +214,8 @@ int StVKHessianTensor::ComputeHessianAtZero()
 
   precomputedIntegrals->ReleaseElementIterator(elIter);
 
-  printf("\n");
+  if (verbose)
+    printf("\n");
 
   return 0;
 }

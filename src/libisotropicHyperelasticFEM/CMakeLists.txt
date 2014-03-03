@@ -17,6 +17,7 @@ set(IHFEM_SRCS
  homogeneousNeoHookeanIsotropicMaterial.cpp
  isotropicHyperelasticFEM.cpp
  isotropicHyperelasticFEMMT.cpp
+ isotropicMaterialWithCompressionResistance.cpp
 )
 
 add_library(isotropicHyperelasticFEM SHARED ${IHFEM_SRCS})

@@ -1,8 +1,8 @@
 /*************************************************************************
  *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
+ * Vega FEM Simulation Library Version 2.0                               *
  *                                                                       *
- * "graph" library , Copyright (C) 2012 USC                              *
+ * "graph" library , Copyright (C) 2013 USC                              *
  * All rights reserved.                                                  *
  *                                                                       *
  * Code author: Jernej Barbic                                            *
@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
+#include "matrixIO.h"
 #include "graph.h"
 
 Graph::Graph() 
@@ -58,27 +59,82 @@ Graph::~Graph()
 {
 }
 
-Graph::Graph(int numVertices_, int numEdges_, int * edges_): numVertices(numVertices_), numEdges(numEdges_)
+Graph::Graph(int numVertices_, int numEdges_, int * edges_, int sortEdgeVertices): numVertices(numVertices_), numEdges(numEdges_)
 {
   //printf("num vertices: %d\n", numVertices);
   for(int i=0; i<numEdges; i++)
   {
     //printf("Edge: %d %d\n", edges_[2*i+0], edges_[2*i+1]);
-    // keep the two indices in each edge sorted
-    if (edges_[2*i+0] < edges_[2*i+1])
-      edges.insert(make_pair(edges_[2*i+0], edges_[2*i+1])); 
+    if (sortEdgeVertices)
+    {
+      // keep the two indices in each edge sorted
+      if (edges_[2*i+0] < edges_[2*i+1])
+        edges.insert(make_pair(edges_[2*i+0], edges_[2*i+1])); 
+      else
+        edges.insert(make_pair(edges_[2*i+1], edges_[2*i+0])); 
+    }
     else
-      edges.insert(make_pair(edges_[2*i+1], edges_[2*i+0])); 
+      edges.insert(make_pair(edges_[2*i+0], edges_[2*i+1])); 
   }
 
   BuildVertexNeighbors();
+}
+
+Graph::Graph(const char * filename, int sortEdgeVertices)
+{
+  FILE * fin;
+  OpenFile_(filename, &fin, "r");
+  int code = fscanf(fin, "%d %d\n", &numVertices, &numEdges);
+  if (code != 2)
+    throw 1;
+
+  //printf("num vertices: %d\n", numVertices);
+  for(int i=0; i<numEdges; i++)
+  {
+    int vtxA, vtxB;
+    int code = fscanf(fin, "%d %d\n", &vtxA, &vtxB);
+    if (code != 2)
+      throw 2;
+
+    //printf("Edge: %d %d\n", vtxA, vtxB);
+    // keep the two indices in each edge sorted
+    if (sortEdgeVertices)
+    {
+      if (vtxA < vtxB)
+        edges.insert(make_pair(vtxA, vtxB));
+      else
+        edges.insert(make_pair(vtxB, vtxA));
+    }
+    else
+      edges.insert(make_pair(vtxA, vtxB));
+  }
+
+  fclose(fin);
+
+  BuildVertexNeighbors();
+}
+
+void Graph::Save(const char * filename)
+{
+  FILE * fout;
+  OpenFile_(filename, &fout, "w");
+  fprintf(fout, "%d %d\n", numVertices, numEdges);
+
+  for(set<pair<int, int> > :: iterator iter = edges.begin(); iter != edges.end(); iter++)
+  {
+    int vtxA = iter->first;
+    int vtxB = iter->second;
+    fprintf(fout, "%d %d\n", vtxA, vtxB);
+  }
+
+  fclose(fout);
 }
 
 void Graph::BuildVertexNeighbors()
 {
   vertexNeighbors.clear();
 
-  printf("Building vertex neighbors.\n");
+  //printf("Building vertex neighbors.\n");
   for(int i=0; i<numVertices; i++)
     vertexNeighbors.push_back(map<int, int>());
 
@@ -317,4 +373,45 @@ void Graph::GetCartesianProductVertexIndexComponents(int productVertex, int * ve
   *vertex1 = productVertex % numVertices;
 }
 
+void Graph::ShortestPath(std::set<int> & seedVertices, std::vector<int> & distances)
+{
+  distances.clear();
+  distances.reserve(numVertices);
+  
+  for(set<int> :: iterator iter = seedVertices.begin(); iter != seedVertices.end(); iter++)
+    distances[*iter] = 0;
+
+  set<int> visitedVertices = seedVertices;
+
+  int distance = 0;
+  set<int> oldFront, front;
+  oldFront = seedVertices;
+  while ((int)visitedVertices.size() != numVertices)
+  {
+    distance++;
+
+    // create the front
+    front.clear();
+    for(set<int> :: iterator iter = oldFront.begin(); iter != oldFront.end(); iter++)
+    {
+      int node = *iter;
+      for(int i=0; i < (int)vertexNeighborsVector[node].size(); i++)
+      {
+        int neighbor = vertexNeighborsVector[node][i];
+        if (visitedVertices.find(neighbor) == visitedVertices.end())
+          front.insert(neighbor);
+      }
+    }
+
+    // write distance to front
+    for(set<int> :: iterator iter = front.begin(); iter != front.end(); iter++)
+    {
+      int node = *iter;
+      visitedVertices.insert(node);
+      distances[node] = distance;
+    }
+
+    oldFront = front; 
+  }
+}
 

@@ -92,7 +92,7 @@ int main()
   double Q[9]; // output
   double S[9]; // output
   double tol = 1e-12;
-  PolarDecomposition::DoPolarDecomposition(M, Q, S, tol); 
+  PolarDecomposition::Compute(M, Q, S, tol); 
 
   PrintMatrix3x3(Q, "Q");
   PrintMatrix3x3(S, "S");

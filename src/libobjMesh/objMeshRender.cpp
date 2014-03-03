@@ -1,48 +1,80 @@
 /*************************************************************************
- *                                                                       *
- * Vega FEM Simulation Library Version 1.1                               *
- *                                                                       *
- * "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2012 USC        *
- * All rights reserved.                                                  *
- *                                                                       *
- * Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
- * http://www.jernejbarbic.com/code                                      *
- *                                                                       *
- * Research: Jernej Barbic, Fun Shing Sin, Daniel Schroeder,             *
- *           Doug L. James, Jovan Popovic                                *
- *                                                                       *
- * Funding: National Science Foundation, Link Foundation,                *
- *          Singapore-MIT GAMBIT Game Lab,                               *
- *          Zumberge Research and Innovation Fund at USC                 *
- *                                                                       *
- * This library is free software; you can redistribute it and/or         *
- * modify it under the terms of the BSD-style license that is            *
- * included with this library in the file LICENSE.txt                    *
- *                                                                       *
- * This library is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the file     *
- * LICENSE.TXT for more details.                                         *
- *                                                                       *
- *************************************************************************/
+*                                                                       *
+* Vega FEM Simulation Library Version 2.0                               *
+*                                                                       *
+* "objMesh" library , Copyright (C) 2007 CMU, 2009 MIT, 2013 USC        *
+* All rights reserved.                                                  *
+*                                                                       *
+* Code authors: Jernej Barbic, Christopher Twigg, Daniel Schroeder      *
+* http://www.jernejbarbic.com/code                                      *
+*                                                                       *
+* Research: Jernej Barbic, Fun Shing Sin, Daniel Schroeder,             *
+*           Doug L. James, Jovan Popovic                                *
+*                                                                       *
+* Funding: National Science Foundation, Link Foundation,                *
+*          Singapore-MIT GAMBIT Game Lab,                               *
+*          Zumberge Research and Innovation Fund at USC                 *
+*                                                                       *
+* This library is free software; you can redistribute it and/or         *
+* modify it under the terms of the BSD-style license that is            *
+* included with this library in the file LICENSE.txt                    *
+*                                                                       *
+* This library is distributed in the hope that it will be useful,       *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the file     *
+* LICENSE.TXT for more details.                                         *
+*                                                                       *
+*************************************************************************/
+
+#ifdef WIN32
+  #pragma warning(disable : 4996)
+  #pragma warning(disable : 4267)
+  #pragma warning(disable : 4244)
+  #define isnan _isnan
+#endif
 
 #include <string.h>
 using namespace std;
 #include "objMeshRender.h"
+#include "imageIO.h"
+
+// this file (in the imageIO library) defines what image file formats are supported
+// note: PPM and uncompressed TGA are always supported
+#include "imageFormats.h"
 
 // Renders the obj mesh.
 // Written by Daniel Schroeder and Jernej Barbic, 2011
+// Transparency and anisotropic filtering added by Jernej Barbic, 2012
 
-void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode_)
+void ObjMeshRender::Texture::loadTextureImage(string fullPath, int * width, int * height, int * bpp, unsigned char ** texData)
 {
-  printf("loading texture %s.\n", fullPath.c_str());
-  int width, height;
-  unsigned char * texData = ObjMeshRender::loadPPM(fullPath, &width, &height);
-  if(texData == NULL)
+  ImageIO imageIO;
+  ImageIO::fileFormatType fileFormat;
+  // automatically determines the file format type from the filename extension; see imageIO class
+  ImageIO::errorType errorCode = imageIO.load(fullPath.c_str(), &fileFormat);
+  if (errorCode != ImageIO::OK)
   {
     printf("Warning: unable to load texture %s.\n", fullPath.c_str());
     return;
   }
+
+  *width = imageIO.getWidth();
+  *height = imageIO.getHeight();
+  *bpp = imageIO.getBytesPerPixel();
+  *texData = (unsigned char*) malloc (sizeof(unsigned char) * *width * *height * *bpp);
+  memcpy(*texData, imageIO.getPixels(), sizeof(unsigned char) * *width * *height * *bpp);
+}
+
+void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode_)
+{
+  this->fullPath = fullPath;
+
+  printf("Loading texture %s.\n", fullPath.c_str());
+
+  int width = 0;
+  int height = 0;
+  unsigned char * texData = NULL;
+  loadTextureImage(fullPath, &width, &height, &bytesPerPixel, &texData);
 
   glEnable(GL_TEXTURE_2D);
   textureMode = textureMode_;
@@ -63,14 +95,86 @@ void ObjMeshRender::Texture::loadTexture(string fullPath, int textureMode_)
   else
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+  if ((width * bytesPerPixel) % 4 != 0)
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  // set internal format (3 or 4 bytes)
+  GLint internalFormat = GL_RGB;
+  GLenum format = GL_RGB;
+  if (bytesPerPixel == 4)
+  {
+    internalFormat = GL_RGBA;
+    format = GL_RGBA;
+  }
+
   if((textureMode & OBJMESHRENDER_MIPMAPBIT) == OBJMESHRENDER_GL_NOMIPMAP)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texData);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, texData);
   else
-    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, width, height, GL_RGB, GL_UNSIGNED_BYTE, texData);
+  {
+    char * versionString = (char*) glGetString(GL_VERSION);
+    double version = 0.0;
+    if (versionString != NULL)  // glGetString will return NULL in an invalid OpenGL context; this is to protect from a seg fault if versionString is NULL on the next line
+      version = strtod(versionString, NULL); 
+    if (version >= 3.0)
+    {
+      //unsigned char * texData1 = (unsigned char*) malloc (sizeof(unsigned char) * width * height * bytesPerPixel);
+      //for(int i=0; i<width*height*bytesPerPixel; i++)
+        //texData[i] = 128;
+
+      //printf("OpenGL version: %G\n", version);
+      //glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, texData);
+      //glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, texData1);
+      //glGenerateMipmap(GL_TEXTURE_2D);
+      gluBuild2DMipmaps(GL_TEXTURE_2D, internalFormat, width, height, format, GL_UNSIGNED_BYTE, texData);
+    }
+    else
+      gluBuild2DMipmaps(GL_TEXTURE_2D, internalFormat, width, height, format, GL_UNSIGNED_BYTE, texData);
+  }
+
+  // enable anisotropic filtering (if requested)
+  // also, check whether extension string can be found
+  if (((textureMode & OBJMESHRENDER_ANISOTROPICFILTERINGBIT) == OBJMESHRENDER_GL_USEANISOTROPICFILTERING) && (strstr((char*)glGetString(GL_EXTENSIONS), "GL_EXT_texture_filter_anisotropic")))
+  {
+    #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+    #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+
+    float maxAnisotropy;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+
+    #undef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+    #undef GL_TEXTURE_MAX_ANISOTROPY_EXT
+  }
 
   glDisable(GL_TEXTURE_2D);
-
   free(texData);
+}
+
+void ObjMeshRender::Texture::flipImage(int width, int height, int bpp, unsigned char * image)
+{
+  unsigned char * rowBuffer = (unsigned char*) malloc (sizeof(unsigned char) * bpp * width);
+  for(int row=0; row < height / 2; row++)
+  {
+    int otherRow = height - 1 - row;
+
+    // swap row and otherRow
+
+    unsigned char * rowPixels = &image[bpp * width * row];
+    unsigned char * otherRowPixels = &image[bpp * width * otherRow];
+
+    // copy row to rowBuffer
+    for(int i=0; i<bpp * width; i++)
+      rowBuffer[i] = rowPixels[i];
+
+    // copy otherRow to row
+    for(int i=0; i<bpp * width; i++)
+      rowPixels[i] = otherRowPixels[i];
+
+    // copy rowBuffer to otherRow
+    for(int i=0; i<bpp * width; i++)
+      otherRowPixels[i] = rowBuffer[i];
+  }
+  free(rowBuffer);
 }
 
 ObjMeshRender::ObjMeshRender(ObjMesh * mesh_) : mesh(mesh_) 
@@ -79,10 +183,64 @@ ObjMeshRender::ObjMeshRender(ObjMesh * mesh_) : mesh(mesh_)
 
 ObjMeshRender::~ObjMeshRender()
 {
+  for(int i=0; i<(int)textures.size(); i++)
+  {
+    if (ownTexture[i])
+    {
+      delete(textures[i]);
+      ownTexture[i] = 0;
+    }
+  }
+  textures.clear();
 }
 
-void ObjMeshRender::render(int geometryMode, int renderMode)
+void ObjMeshRender::renderGroup(unsigned int groupIndex, int geometryMode, int renderMode)
 {
+  render(geometryMode, renderMode, groupIndex);
+}
+
+void ObjMeshRender::renderGroup(char * groupName, int geometryMode, int renderMode)
+{
+  // get the group
+  std::string name(groupName);
+  unsigned int groupIndex = mesh->getGroupIndex(name);
+  render(geometryMode, renderMode, groupIndex);
+}
+
+void ObjMeshRender::render(int geometryMode, int renderMode, int renderSingleGroup)
+{
+  if (renderMode & OBJMESHRENDER_TRANSPARENCY)
+  {
+    //printf("Two-pass render.\n");
+    // two-pass render
+    int modifiedRenderMode = ((unsigned int)renderMode) & (~OBJMESHRENDER_TRANSPARENCY); 
+
+    glEnable(GL_LIGHTING);
+  
+    // pass 1
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_EQUAL, 1.0);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    render(geometryMode, modifiedRenderMode, renderSingleGroup);
+
+    glEnable(GL_LIGHTING);
+ 
+    // pass 2
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_LESS, 1.0);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    render(geometryMode, modifiedRenderMode, renderSingleGroup);
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glDisable(GL_ALPHA_TEST);
+
+    return;
+  }
+
   bool warnMissingNormals = false;
   bool warnMissingFaceNormals = false;
   bool warnMissingTextureCoordinates = false;
@@ -91,6 +249,7 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
 
   GLboolean lightingInitiallyEnabled = false;
   glGetBooleanv(GL_LIGHTING, &lightingInitiallyEnabled);
+  //printf("lighting initially enabled: %d\n", lightingInitiallyEnabled);
 
   // resolve conflicts in render mode settings and/or mesh data
   if((renderMode & OBJMESHRENDER_FLAT) && (renderMode & OBJMESHRENDER_SMOOTH))
@@ -122,8 +281,12 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
       //glEnable(GL_POLYGON_OFFSET_FILL);
       //glPolygonOffset(2.0, 2.0);
     }
+
     for(unsigned int i=0; i < mesh->getNumGroups(); i++)
     {
+      if ((renderSingleGroup >= 0) && ((int)i != renderSingleGroup))     
+        continue;
+
       const ObjMesh::Group * groupHandle = mesh->getGroupHandle(i);
       // set material
       const ObjMesh::Material * materialHandle = mesh->getMaterialHandle(groupHandle->getMaterialIndex());
@@ -131,6 +294,7 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
       Vec3d Ka = materialHandle->getKa();
       Vec3d Kd = materialHandle->getKd();
       Vec3d Ks = materialHandle->getKs();
+
       float shininess = materialHandle->getShininess();
       float alpha = materialHandle->getAlpha();
       float ambient[4] = { Ka[0], Ka[1], Ka[2], alpha };
@@ -152,14 +316,14 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
       {
         if(groupHandle->getMaterialIndex() >= textures.size())
         {
-          //textures are out of date
+          //textures are missing
           warnMissingTextures = true;
         }
-        else if (!textures[groupHandle->getMaterialIndex()].hasTexture())
+        else if (!textures[groupHandle->getMaterialIndex()]->hasTexture())
           warnMissingTextures = true;
         else
         {
-          Texture * textureHandle = &(textures[groupHandle->getMaterialIndex()]);
+          Texture * textureHandle = textures[groupHandle->getMaterialIndex()];
           glBindTexture(GL_TEXTURE_2D, textureHandle->getTexture());
           glEnable(GL_TEXTURE_2D);
           if((textureHandle->getTextureMode() & OBJMESHRENDER_LIGHTINGMODULATIONBIT) == OBJMESHRENDER_GL_REPLACE)
@@ -169,45 +333,48 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
           glEnable(GL_TEXTURE_2D);
         }
       }
-  
+
       //printf("amb: %G %G %G\n", Ka[0], Ka[1], Ka[2]);
       //printf("dif: %G %G %G\n", Kd[0], Kd[1], Kd[2]);
       //printf("spe: %G %G %G\n", Ks[0], Ks[1], Ks[2]);
-  
-      for( unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); iFace++ )
+
+      for(unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); iFace++)
       {
         const ObjMesh::Face * faceHandle = groupHandle->getFaceHandle(iFace);
-  
+
         glBegin(GL_POLYGON);
         if(renderMode & OBJMESHRENDER_FLAT)
         {
           if(faceHandle->hasFaceNormal())
           {
-  	    Vec3d fnormal = faceHandle->getFaceNormal();
-  	    glNormal3d(fnormal[0],fnormal[1],fnormal[2]);
+            Vec3d fnormal = faceHandle->getFaceNormal();
+            glNormal3d(fnormal[0],fnormal[1],fnormal[2]);
           }
           else
             warnMissingFaceNormals = true;
         }
-  
-        for( unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); iVertex++ )
+
+        for(unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); iVertex++)
         {
           const ObjMesh::Vertex * vertexHandle = faceHandle->getVertexHandle(iVertex);
           Vec3d v = mesh->getPosition(*vertexHandle);
           int vertexPositionIndex = vertexHandle->getPositionIndex();
-  
+
           // set normal
           if(renderMode & OBJMESHRENDER_SMOOTH)
           {
             if(vertexHandle->hasNormalIndex())
             {
               Vec3d normal = mesh->getNormal(*vertexHandle);
-              glNormal3d(normal[0], normal[1], normal[2]);
+              if ((!isnan(normal[0])) && (!isnan(normal[1])) && (!isnan(normal[2])))
+                glNormal3d(normal[0], normal[1], normal[2]);
+              else
+                glNormal3d(0, 1, 0);
             }
             else
               warnMissingNormals = true;
           }
-  
+
           // set texture coordinate
           if(renderMode & OBJMESHRENDER_TEXTURE)
           {
@@ -227,17 +394,18 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
             else
               glColor3f(customColors[vertexPositionIndex][0], customColors[vertexPositionIndex][1], customColors[vertexPositionIndex][2]);
           }
-  
+
           // set position
           glVertex3d(v[0],v[1],v[2]);
         }
-  
+
         glEnd();
       }
 
       if((renderMode & OBJMESHRENDER_TEXTURE))
         glDisable(GL_TEXTURE_2D);
     }
+
     if(geometryMode & (OBJMESHRENDER_EDGES | OBJMESHRENDER_VERTICES))
     {
       //glDisable(GL_POLYGON_OFFSET_FILL);
@@ -251,16 +419,38 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
 
   if(geometryMode & OBJMESHRENDER_VERTICES)
   {
-    int numVertices = mesh->getNumVertices();
-
-    for(int i = 0; i < numVertices; i++)
+    if (renderSingleGroup < 0)
     {
-      if(renderMode & OBJMESHRENDER_SELECTION)
-        glLoadName(i);  
-      glBegin(GL_POINTS);
-      Vec3d pos = mesh->getPosition(i);
-      glVertex3f(pos[0], pos[1], pos[2]);
-      glEnd();
+      int numVertices = mesh->getNumVertices();
+
+      for(int i = 0; i < numVertices; i++)
+      {
+        if(renderMode & OBJMESHRENDER_SELECTION)
+          glLoadName(i);  
+        glBegin(GL_POINTS);
+        Vec3d pos = mesh->getPosition(i);
+        glVertex3f(pos[0], pos[1], pos[2]);
+        glEnd();
+      }
+    }
+    else
+    {
+      const ObjMesh::Group * groupHandle = mesh->getGroupHandle(renderSingleGroup);
+      for(unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); ++iFace)
+      {
+        const ObjMesh::Face * faceHandle = groupHandle->getFaceHandle(iFace);
+        if(geometryMode & OBJMESHRENDER_VERTICES)
+        {
+          glBegin(GL_POINTS);
+          for(unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); ++iVertex)
+          {
+            const ObjMesh::Vertex * vertexHandle = faceHandle->getVertexHandle(iVertex);
+            Vec3d v = mesh->getPosition(*vertexHandle);
+            glVertex3d(v[0], v[1], v[2]);
+          }
+          glEnd();
+        }
+      }
     }
   }
 
@@ -273,6 +463,9 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
     glPolygonOffset(-1.0, -1.0);
     for(unsigned int i=0; i < mesh->getNumGroups(); i++)
     {
+      if ((renderSingleGroup >= 0) && ((int)i != renderSingleGroup))
+        continue;
+
       const ObjMesh::Group * groupHandle = mesh->getGroupHandle(i);
       for(unsigned int iFace = 0; iFace < groupHandle->getNumFaces(); ++iFace)
       {
@@ -282,9 +475,9 @@ void ObjMeshRender::render(int geometryMode, int renderMode)
           glBegin(GL_POLYGON);
           for(unsigned int iVertex = 0; iVertex < faceHandle->getNumVertices(); ++iVertex)
           {
-  	    const ObjMesh::Vertex * vertexHandle = faceHandle->getVertexHandle(iVertex);
-  	    Vec3d v = mesh->getPosition(*vertexHandle);
-  	    glVertex3d(v[0], v[1], v[2]);
+            const ObjMesh::Vertex * vertexHandle = faceHandle->getVertexHandle(iVertex);
+            Vec3d v = mesh->getPosition(*vertexHandle);
+            glVertex3d(v[0], v[1], v[2]);
           }
           glEnd();
         }
@@ -312,7 +505,7 @@ unsigned int ObjMeshRender::createDisplayList(int geometryMode, int renderMode)
 {
   unsigned int list = glGenLists(1);
   glNewList(list, GL_COMPILE);
-    render(geometryMode, renderMode);
+  render(geometryMode, renderMode);
   glEndList();
   return list;
 }
@@ -369,20 +562,29 @@ int ObjMeshRender::numTextures()
   for(int i = 0; i < numMaterials; i++)
   {
     const ObjMesh::Material * material = mesh->getMaterialHandle(i);
+
     if(material->hasTextureFilename())
       numTextures++;
   }
   return numTextures;
 }
 
-void ObjMeshRender::loadTextures(int textureMode)
+void ObjMeshRender::loadTextures(int textureMode, std::vector<Texture*> * texturePool, int updatePool)
 {
   //clear old
-
+  for(int i=0; i<(int)textures.size(); i++)
+  {
+    if (ownTexture[i])
+    {
+      delete(textures[i]);
+      ownTexture[i] = 0;
+    }
+  }
   textures.clear();
 
   int numMaterials = mesh->getNumMaterials();
   textures.resize(numMaterials);
+  ownTexture.resize(numMaterials);
 
   const ObjMesh::Material * material;
   char path[4096];
@@ -394,92 +596,45 @@ void ObjMeshRender::loadTextures(int textureMode)
   {
     material = mesh->getMaterialHandle(i);
     if(!material->hasTextureFilename())
+    {
+      ownTexture[i] = 0;
       continue;
+    }
 
-    textures[i].loadTexture(pathStr + string("/") + material->getTextureFilename(), textureMode);
+    string fullPath = pathStr + string("/") + material->getTextureFilename();
+
+    int found = 0;
+    if (texturePool != NULL)
+    {
+      // seek for this texture in the texture pool
+      for(int j=0; j<(int)texturePool->size(); j++)
+      {
+        std::string poolFullPath = (*texturePool)[j]->getFullPath();
+        if (fullPath == poolFullPath)
+        {
+          printf("Texture %s discovered in the texture pool. Avoiding reload.\n", fullPath.c_str());
+          textures[i] = (*texturePool)[j];
+          ownTexture[i] = 0;
+          found = 1;
+          break;
+        }
+      }
+    }
+
+    if (!found)
+    {
+      textures[i] = new Texture();
+      ownTexture[i] = 1;
+      textures[i]->loadTexture(fullPath, textureMode);
+      if (updatePool)
+        texturePool->push_back(textures[i]);
+    }
   }
 }
 
 ObjMeshRender::Texture * ObjMeshRender::getTextureHandle(int textureIndex)
 {
-  return &textures[textureIndex];
-}
-
-unsigned char * ObjMeshRender::loadPPM(string filename, int * width, int * height)
-{
-  char buf[4096];
-  FILE * file;
-
-  unsigned char * data;
-
-  int maxval;
-
-  file = fopen(filename.c_str(), "rb");
-  if(!file)
-    return NULL;
-
-  char * result = fgets(buf, 4096, file);
-  result = result; // to avoid compiler warnings
-  if(strncmp(buf, "P6", 2))
-  {
-    printf("file is not raw RGB ppm\n");
-    fclose(file);
-    return NULL;
-  }
-
-  //read file dimensions
-
-  int i = 0;
-  while(i < 3)
-  {
-    result = fgets(buf, 4096, file);
-    if(buf[0] == '#')
-      continue;
-    if(i == 0)
-      i += sscanf(buf, "%d %d %d", width, height, &maxval);
-    else if(i == 1)
-      i += sscanf(buf, "%d %d", height, &maxval);
-    else if(i == 2)
-      i += sscanf(buf, "%d", &maxval);
-  }
-
-  //read
-  data = (unsigned char*) malloc (sizeof(unsigned char) * 3 * *width * *height);
-  if((int)fread(data, sizeof(unsigned char), 3 * *width * *height, file) < 3 * *width * *height)
-  {
-    printf("error reading ppm image data\n");
-    free(data);
-    fclose(file);
-    return NULL;
-  }
-
-  // must flip image: PPM gives pixels top-to-bottom, but glTexImage2D expects bottom-to-top
-  unsigned char * rowBuffer = (unsigned char*) malloc (sizeof(unsigned char) * 3 * *width);
-  for(int row=0; row < *height / 2; row++)
-  {
-    int otherRow = *height - 1 - row;
-
-    // swap row and otherRow
- 
-    unsigned char * rowPixels = &data[3 * *width * row];
-    unsigned char * otherRowPixels = &data[3 * *width * otherRow];
-
-    // copy row to rowBuffer
-    for(int i=0; i<3 * *width; i++)
-      rowBuffer[i] = rowPixels[i];
-
-    // copy otherRow to row
-    for(int i=0; i<3 * *width; i++)
-      rowPixels[i] = otherRowPixels[i];
-
-    // copy rowBuffer to otherRow
-    for(int i=0; i<3 * *width; i++)
-      otherRowPixels[i] = rowBuffer[i];
-  }
-  free(rowBuffer);
-
-  fclose(file);
-  return data;
+  return textures[textureIndex];
 }
 
 void ObjMeshRender::outputOpenGLRenderCode()
@@ -588,4 +743,23 @@ void ObjMeshRender::setCustomColors(vector<Vec3d> colors)
     customColors.push_back(colors[i]);
 }
 
+int ObjMeshRender::maxBytesPerPixelInTextures()
+{
+  int maxBytes = 0;
+
+  int numMaterials = mesh->getNumMaterials();
+  for(int i=0; i<numMaterials; i++)
+  {
+    const ObjMesh::Material * material = mesh->getMaterialHandle(i);
+    if(!material->hasTextureFilename())
+      continue;
+
+    Texture * tex = getTextureHandle(i);
+    int bpp = tex->getBytesPerPixel();
+    if (bpp > maxBytes)
+      maxBytes = bpp;
+  }
+
+  return maxBytes;
+}
 
