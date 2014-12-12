@@ -5,4 +5,4 @@ include_directories(
 )
 
 add_library(lighting SHARED lighting.cpp)
-target_link_libraries(lighting configFile)
+target_link_libraries(lighting configFile ${OPENGL_LIBRARIES})

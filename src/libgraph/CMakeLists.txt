@@ -6,4 +6,4 @@ include_directories(
 )
 
 add_library(graph SHARED graph.cpp)
-target_link_libraries(graph sparseMatrix)
+target_link_libraries(graph sparseMatrix matrixIO)

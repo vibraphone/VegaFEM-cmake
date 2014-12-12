@@ -22,4 +22,4 @@ if(CG_LIBS)
 endif(CG_LIBS)
 
 add_library(sceneObject SHARED ${SCOBJ_SRCS})
-target_link_libraries(sceneObject objMesh lighting minivector)
+target_link_libraries(sceneObject objMesh lighting minivector ${GLUT_LIBRARIES})
