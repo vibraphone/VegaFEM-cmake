@@ -35,49 +35,49 @@ This code can numerically timestep a system of ODEs of the form:
 
 M * q'' + (alpha * M + beta * K(q)) q' + R(q) = fext(t) , where
 
-q is an unknown vector function, M is an arbitrary symmetric positive-definite 
-matrix, fext(t) are arbitrary user-provided external forces, alpha and beta 
-are arbitrary non-negative scalar constants (Rayleigh damping parameters), 
-R(q) is an arbitrary user-provided vector function, and K(q) = d R / d q is 
-its user-provided gradient. 
+q is an unknown vector function, M is an arbitrary symmetric positive-definite
+matrix, fext(t) are arbitrary user-provided external forces, alpha and beta
+are arbitrary non-negative scalar constants (Rayleigh damping parameters),
+R(q) is an arbitrary user-provided vector function, and K(q) = d R / d q is
+its user-provided gradient.
 
 Such a system arises, for example, when simulating a nonlinear
 deformable object using the Finite Element Method (FEM), or also using
-mass-spring systems.  This code has been used for simulations of large 
+mass-spring systems.  This code has been used for simulations of large
 deformations of 3D solid deformable objects, with dynamics (see [1]).
 
 The code supports several numerical integrators (see derived classes).
 
 The code can handle both large sparse systems and dense reduced systems.
-For example, the large sparse version can be used to simulate a general 
-deforming tetrahedral mesh. The dense version can be used for simulations 
+For example, the large sparse version can be used to simulate a general
+deforming tetrahedral mesh. The dense version can be used for simulations
 that employ model reduction (see [1]).
 
-The class in this file (IntegratorBase) is the abstract base class. In practice, 
-you need to use one of the provided derived classes, depending on whether 
+The class in this file (IntegratorBase) is the abstract base class. In practice,
+you need to use one of the provided derived classes, depending on whether
 you want to simulate large sparse systems or dense reduced systems.
 
-All these classes are generic in that you can provide your own arbitrary 
-internal forces R(q) and their gradients K(q). You do so by deriving from the 
-InternalForceModel class, and passing that class to the appropriate integrator 
-class constructor. Several force model classes are provided, including 
-the cubic polynomial reduced StVK model from [1], and a linearized version of 
+All these classes are generic in that you can provide your own arbitrary
+internal forces R(q) and their gradients K(q). You do so by deriving from the
+InternalForceModel class, and passing that class to the appropriate integrator
+class constructor. Several force model classes are provided, including
+the cubic polynomial reduced StVK model from [1], and a linearized version of
 that model.
 
-For dense simulations, you need a BLAS and LAPACK library. This is necessary 
+For dense simulations, you need a BLAS and LAPACK library. This is necessary
 to solve the r x r linear systems inside the implicit Newmark solver.
 We have successfully used the following BLAS and LAPACK libraries:
 1. Windows: Intel Math Kernel Library for Windows
 2. Red Hat Linux: Intel Math Kernel Library for Linux
-3. Mac OS X: both BLAS and LAPACK are already included with Mac OS X 
+3. Mac OS X: both BLAS and LAPACK are already included with Mac OS X
    (the vecLib framework)
-You can probably also download the generic BLAS and LAPACK implementations 
+You can probably also download the generic BLAS and LAPACK implementations
 from www.netlib.org. All dense matrices are stored in column-major format.
 
-For large sparse simulations, you need a large sparse linear system solver. 
+For large sparse simulations, you need a large sparse linear system solver.
 The code supports the following solvers:
-1. SPOOLES (a free solver), 
-2. PARDISO (we used the commercial version that comes with Intel MKL; this 
+1. SPOOLES (a free solver),
+2. PARDISO (we used the commercial version that comes with Intel MKL; this
 solver is multi-threaded and can be executed across multiple cores of a CPU),
 3. our own Jacobi-preconditioned Conjugate Solver (from our "sparseMatrix" library).
 We were able to run sparse simulations on Windows, Linux and Mac OS X.
@@ -87,11 +87,11 @@ terms are neglected, and the system only computes the static equilibrium
 under the currently applied external forces.
 
 References:
-[1] Jernej Barbic, Doug L. James: Real-Time Subspace Integration for 
-St.Venant-Kirchhoff Deformable Models, ACM Transactions on Graphics 24(3) 
+[1] Jernej Barbic, Doug L. James: Real-Time Subspace Integration for
+St.Venant-Kirchhoff Deformable Models, ACM Transactions on Graphics 24(3)
 (SIGGRAPH 2005), p. 982-990, Los Angeles, CA, August 2005
-[2] Jernej Barbic: Real-time Reduced Large-Deformation Models and Distributed 
-Contact for Computer Graphics and Haptics, PhD Thesis, Carnegie Mellon University, 
+[2] Jernej Barbic: Real-time Reduced Large-Deformation Models and Distributed
+Contact for Computer Graphics and Haptics, PhD Thesis, Carnegie Mellon University,
 August 2007
 
 Both publications are available online at www.jernejbarbic.com .
@@ -105,7 +105,7 @@ Both publications are available online at www.jernejbarbic.com .
 class IntegratorBase
 {
 public:
-  // r is the dimension of the simulation; it equals 3*n for unreduced systems, where n is the number of vertices in the simulation mesh; with reduction, r equals the size of the simulation basis 
+  // r is the dimension of the simulation; it equals 3*n for unreduced systems, where n is the number of vertices in the simulation mesh; with reduction, r equals the size of the simulation basis
   // the damping coefficients are tangential Rayleigh damping coefficients, see [2]
   IntegratorBase(int r, double timestep, double dampingMassCoef=0.0, double dampingStiffnessCoef=0.0);
 
@@ -114,10 +114,10 @@ public:
   // === set/get the state (position,velocity and acceleration) ===
 
   // set integrator to zero (q, qvel, and qaccel are set to zero)
-  virtual void ResetToRest(); 
+  virtual void ResetToRest();
 
   // sets the position and the velocity
-  // this routine will internally automatically compute proper acceleration 
+  // this routine will internally automatically compute proper acceleration
   // returns 0 on success, 1 if solver fails to converge
   virtual int SetState(double * q, double * qvel=NULL) = 0;
 
@@ -129,8 +129,8 @@ public:
   void GetqState(double * q, double * qvel=NULL, double * qaccel=NULL);
 
   // set/get invidivual position components:
-  inline void SetQ(int index, double qIndex) { q[index] = qIndex; } 
-  inline double GetQ(int index) { return q[index]; } 
+  inline void SetQ(int index, double qIndex) { q[index] = qIndex; }
+  inline double GetQ(int index) { return q[index]; }
 
   // obtain pointers to the internally stored position, velocity, and acceleration
   // (advanced usage)
@@ -141,11 +141,11 @@ public:
   // == set external forces (a vector of r numbers) ===
 
   // external forces remain in force until explicity changed
-  void SetExternalForces(double * externalForces); 
-  void AddExternalForces(double * externalForces); 
+  void SetExternalForces(double * externalForces);
+  void AddExternalForces(double * externalForces);
   void GetExternalForces(double * externalForces);
   double * GetExternalForces() { return externalForces; };
-  void SetExternalForcesToZero(); 
+  void SetExternalForcesToZero();
 
   // === set integration and simulation parameters ===
 
@@ -183,7 +183,7 @@ protected:
   double * q; // current deformation amplitudes
   double * qvel; // current velocities of deformation amplitudes
   double * qaccel; // current acceleration (used inside implicit newmark integration)
-  double * qresidual, * qdelta; // aux integration variables 
+  double * qresidual, * qdelta; // aux integration variables
   double * q_1; // deformation amplitudes at previous time-step
   double * qvel_1;
   double * qaccel_1;
@@ -191,17 +191,17 @@ protected:
   double * internalForces; // current internal force amplitudes
   double * externalForces; // current external force amplitudes
 
-  double internalForceScalingFactor; 
+  double internalForceScalingFactor;
 
   double * buffer;
 
-  // these two store the damping parameters 
+  // these two store the damping parameters
   double dampingMassCoef;
   double dampingStiffnessCoef;
 
-  int r; // number of reduced DOFs 
+  int r; // number of reduced DOFs
 
-  double timestep; 
+  double timestep;
 };
 
 #endif

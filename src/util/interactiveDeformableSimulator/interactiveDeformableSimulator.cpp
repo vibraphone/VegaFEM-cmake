@@ -450,7 +450,7 @@ void displayFunction(void)
       glColor3f(1,0,0);
       double fixedVertexPos[3];
       deformableObjectRenderingMesh->GetSingleVertexRestPosition(fixedVertices[i],
-	 &fixedVertexPos[0], &fixedVertexPos[1], &fixedVertexPos[2]);
+         &fixedVertexPos[0], &fixedVertexPos[1], &fixedVertexPos[2]);
 
       glEnable(GL_POLYGON_OFFSET_POINT);
       glPolygonOffset(-1.0,-1.0);
@@ -523,67 +523,67 @@ void idleFunction(void)
     {
       if (pulledVertex != -1)
       {
-	double forceX = (g_vMousePos[0] - dragStartX);
-	double forceY = -(g_vMousePos[1] - dragStartY);
+        double forceX = (g_vMousePos[0] - dragStartX);
+        double forceY = -(g_vMousePos[1] - dragStartY);
 
-	double externalForce[3];
+        double externalForce[3];
 
-	camera->CameraVector2WorldVector_OrientationOnly3D(
-	   forceX, forceY, 0, externalForce);
+        camera->CameraVector2WorldVector_OrientationOnly3D(
+           forceX, forceY, 0, externalForce);
 
-	for(int j=0; j<3; j++)
-	  externalForce[j] *= deformableObjectCompliance;
+        for(int j=0; j<3; j++)
+          externalForce[j] *= deformableObjectCompliance;
 
-	printf("%d fx: %G fy: %G | %G %G %G\n", pulledVertex, forceX, forceY, externalForce[0], externalForce[1], externalForce[2]);
+        printf("%d fx: %G fy: %G | %G %G %G\n", pulledVertex, forceX, forceY, externalForce[0], externalForce[1], externalForce[2]);
 
-	// register force on the pulled vertex
-	f_ext[3*pulledVertex+0] += externalForce[0];
-	f_ext[3*pulledVertex+1] += externalForce[1];
-	f_ext[3*pulledVertex+2] += externalForce[2];
+        // register force on the pulled vertex
+        f_ext[3*pulledVertex+0] += externalForce[0];
+        f_ext[3*pulledVertex+1] += externalForce[1];
+        f_ext[3*pulledVertex+2] += externalForce[2];
 
-	// distribute force over the neighboring vertices
-	set<int> affectedVertices;
-	set<int> lastLayerVertices;
+        // distribute force over the neighboring vertices
+        set<int> affectedVertices;
+        set<int> lastLayerVertices;
 
-	affectedVertices.insert(pulledVertex);
-	lastLayerVertices.insert(pulledVertex);
+        affectedVertices.insert(pulledVertex);
+        lastLayerVertices.insert(pulledVertex);
 
-	for(int j=1; j<forceNeighborhoodSize; j++)
-	{
-	  // linear kernel
-	  double forceMagnitude = 1.0 * (forceNeighborhoodSize - j) / forceNeighborhoodSize;
+        for(int j=1; j<forceNeighborhoodSize; j++)
+        {
+          // linear kernel
+          double forceMagnitude = 1.0 * (forceNeighborhoodSize - j) / forceNeighborhoodSize;
 
-	  set<int> newAffectedVertices;
-	  for(set<int> :: iterator iter = lastLayerVertices.begin(); iter != lastLayerVertices.end(); iter++)
-	  {
-	    // traverse all neighbors and check if they were already previously inserted
-	    int vtx = *iter;
-	    int deg = meshGraph->GetNumNeighbors(vtx);
-	    for(int k=0; k<deg; k++)
-	    {
-	      int vtxNeighbor = meshGraph->GetNeighbor(vtx, k);
+          set<int> newAffectedVertices;
+          for(set<int> :: iterator iter = lastLayerVertices.begin(); iter != lastLayerVertices.end(); iter++)
+          {
+            // traverse all neighbors and check if they were already previously inserted
+            int vtx = *iter;
+            int deg = meshGraph->GetNumNeighbors(vtx);
+            for(int k=0; k<deg; k++)
+            {
+              int vtxNeighbor = meshGraph->GetNeighbor(vtx, k);
 
-	      if (affectedVertices.find(vtxNeighbor) == affectedVertices.end())
-	      {
-		// discovered new vertex
-		newAffectedVertices.insert(vtxNeighbor);
-	      }
-	    }
-	  }
+              if (affectedVertices.find(vtxNeighbor) == affectedVertices.end())
+              {
+                // discovered new vertex
+                newAffectedVertices.insert(vtxNeighbor);
+              }
+            }
+          }
 
-	  lastLayerVertices.clear();
-	  for(set<int> :: iterator iter = newAffectedVertices.begin(); iter != newAffectedVertices.end(); iter++)
-	  {
-	    // apply force
-	    f_ext[3* *iter + 0] += forceMagnitude * externalForce[0];
-	    f_ext[3* *iter + 1] += forceMagnitude * externalForce[1];
-	    f_ext[3* *iter + 2] += forceMagnitude * externalForce[2];
+          lastLayerVertices.clear();
+          for(set<int> :: iterator iter = newAffectedVertices.begin(); iter != newAffectedVertices.end(); iter++)
+          {
+            // apply force
+            f_ext[3* *iter + 0] += forceMagnitude * externalForce[0];
+            f_ext[3* *iter + 1] += forceMagnitude * externalForce[1];
+            f_ext[3* *iter + 2] += forceMagnitude * externalForce[2];
 
-	    // generate new layers
-	    lastLayerVertices.insert(*iter);
-	    affectedVertices.insert(*iter);
-	  }
-	}
+            // generate new layers
+            lastLayerVertices.insert(*iter);
+            affectedVertices.insert(*iter);
+          }
+        }
       }
     }
 
@@ -622,17 +622,17 @@ void idleFunction(void)
 
       if (code != 0)
       {
-	printf("The integrator went unstable. Reduce the timestep, or increase the number of substeps per timestep.\n");
-	integratorBase->ResetToRest();
-	for(int i=0; i<3*n; i++)
-	{
-	  f_ext[i] = 0;
-	  f_extBase[i] = 0;
-	}
-	integratorBase->SetExternalForcesToZero();
-	explosionFlag = 1;
-	explosionCounter.StartCounter();
-	break;
+        printf("The integrator went unstable. Reduce the timestep, or increase the number of substeps per timestep.\n");
+        integratorBase->ResetToRest();
+        for(int i=0; i<3*n; i++)
+        {
+          f_ext[i] = 0;
+          f_extBase[i] = 0;
+        }
+        integratorBase->SetExternalForcesToZero();
+        explosionFlag = 1;
+        explosionCounter.StartCounter();
+        break;
       }
 
       // update UI performance indicators
@@ -668,8 +668,8 @@ void idleFunction(void)
       double elapsedTime;
       do
       {
-	titleBarCounter.StopCounter();
-	elapsedTime = titleBarCounter.GetElapsedTime();
+        titleBarCounter.StopCounter();
+        elapsedTime = titleBarCounter.GetElapsedTime();
       }
       while (1.0 * graphicFrame / elapsedTime >= 30.0);
     }
@@ -791,7 +791,7 @@ void keyboardFunction(unsigned char key, int x, int y)
 
     case 13:
       if (singleStepMode == 2)
-	singleStepMode = 1;
+        singleStepMode = 1;
       break;
 
     case 'w':
@@ -835,18 +835,18 @@ void keyboardFunction(unsigned char key, int x, int y)
       lockScene = !lockScene;
       if (lockScene)
       {
-	camera->PushPosition();
+        camera->PushPosition();
       }
       else
       {
-	camera->PopPosition();
+        camera->PopPosition();
       }
       break;
 
     case '1':
       corotationalLinearFEM_warp = (corotationalLinearFEM_warp + 1) % (max_corotationalLinearFEM_warp + 1);
       if(corotationalLinearFEMForceModel != NULL)
-	corotationalLinearFEMForceModel->SetWarp(corotationalLinearFEM_warp);
+        corotationalLinearFEMForceModel->SetWarp(corotationalLinearFEM_warp);
       printf("CorotationalLinearFEM warp is now: %d\n", corotationalLinearFEM_warp);
       break;
 
@@ -857,7 +857,7 @@ void keyboardFunction(unsigned char key, int x, int y)
     case 'E':
       renderSecondaryDeformableObject = !renderSecondaryDeformableObject;
       if (secondaryDeformableObjectRenderingMesh == NULL)
-	renderSecondaryDeformableObject = 0;
+        renderSecondaryDeformableObject = 0;
       break;
 
     case 'N':
@@ -871,9 +871,9 @@ void keyboardFunction(unsigned char key, int x, int y)
 
     case 'P':
       if (singleStepMode > 0)
-	singleStepMode = 0;
+        singleStepMode = 0;
       else
-	singleStepMode = 1;
+        singleStepMode = 1;
       break;
 
     case 'u':
@@ -884,14 +884,14 @@ void keyboardFunction(unsigned char key, int x, int y)
 
     case 'z':
       for(int i=0; i<3*n; i++)
-	f_extBase[i] = f_ext[i];
+        f_extBase[i] = f_ext[i];
       dragStartX = g_vMousePos[0];
       dragStartY = g_vMousePos[1];
       break;
 
     case 'Z':
       for(int i=0; i<3*n; i++)
-	f_extBase[i] = 0;
+        f_extBase[i] = 0;
       dragStartX = g_vMousePos[0];
       dragStartY = g_vMousePos[1];
       break;
@@ -1001,46 +1001,46 @@ void mouseButtonActivityFunction(int button, int state, int x, int y)
 
       if ((g_iLeftMouseButton) && (!shiftPressed) && (!ctrlPressed))
       {
-	// apply force to vertex
+        // apply force to vertex
 
-	GLdouble model[16];
-	glGetDoublev (GL_MODELVIEW_MATRIX, model);
+        GLdouble model[16];
+        glGetDoublev (GL_MODELVIEW_MATRIX, model);
 
-	GLdouble proj[16];
-	glGetDoublev (GL_PROJECTION_MATRIX, proj);
+        GLdouble proj[16];
+        glGetDoublev (GL_PROJECTION_MATRIX, proj);
 
-	GLint view[4];
-	glGetIntegerv (GL_VIEWPORT, view);
+        GLint view[4];
+        glGetIntegerv (GL_VIEWPORT, view);
 
-	int winX = x;
-	int winY = view[3]-1-y;
+        int winX = x;
+        int winY = view[3]-1-y;
 
-	float zValue;
-	glReadPixels(winX,winY,1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &zValue); 
+        float zValue;
+        glReadPixels(winX,winY,1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &zValue); 
 
-	GLubyte stencilValue;
-	glReadPixels(winX, winY, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &stencilValue);
+        GLubyte stencilValue;
+        glReadPixels(winX, winY, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &stencilValue);
 
-	GLdouble worldX, worldY, worldZ;
-	gluUnProject(winX, winY, zValue, model, proj, view, &worldX, &worldY, &worldZ);
+        GLdouble worldX, worldY, worldZ;
+        gluUnProject(winX, winY, zValue, model, proj, view, &worldX, &worldY, &worldZ);
 
-	if (stencilValue == 1)
-	{
-	  dragStartX = x;
-	  dragStartY = y;
+        if (stencilValue == 1)
+        {
+          dragStartX = x;
+          dragStartY = y;
           Vec3d pos(worldX, worldY, worldZ);
-	  pulledVertex = deformableObjectRenderingMesh->GetClosestVertex(pos);
-	  printf("Clicked on vertex: %d (0-indexed)\n", pulledVertex);
-	}
-	else
-	{
-	  printf("Clicked on empty stencil: %d.\n", stencilValue);
-	}
+          pulledVertex = deformableObjectRenderingMesh->GetClosestVertex(pos);
+          printf("Clicked on vertex: %d (0-indexed)\n", pulledVertex);
+        }
+        else
+        {
+          printf("Clicked on empty stencil: %d.\n", stencilValue);
+        }
       }
 
       if (!g_iLeftMouseButton)
       {
-	pulledVertex = -1;
+        pulledVertex = -1;
       }
 
       break;
@@ -1163,8 +1163,8 @@ void initSimulation()
       StVKElementABCD * precomputedIntegrals = StVKElementABCDLoader::load(volumetricMesh, loadingFlag);
       if (precomputedIntegrals == NULL)
       {
-	printf("Error: unable to load the StVK integrals.\n");
-	exit(1);
+        printf("Error: unable to load the StVK integrals.\n");
+        exit(1);
       }
 
       printf("Generating internal forces and stiffness matrix models...\n"); fflush(NULL);
@@ -1186,97 +1186,97 @@ void initSimulation()
     switch (massSpringSystemSource)
     {
       case OBJ:
-	{
-	  printf("Loading mass spring system from an obj file...\n");
-	  MassSpringSystemFromObjMeshConfigFile massSpringSystemFromObjMeshConfigFile;
-	  MassSpringSystemObjMeshConfiguration massSpringSystemObjMeshConfiguration;
-	  if (massSpringSystemFromObjMeshConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0) 
-	  {
-	    printf("Error initializing the mass spring system.\n");
-	    exit(1);
-	  }
-	  strcpy(renderingMeshFilename, massSpringSystemObjMeshConfiguration.massSpringMeshFilename);
-	}
-	break;
+        {
+          printf("Loading mass spring system from an obj file...\n");
+          MassSpringSystemFromObjMeshConfigFile massSpringSystemFromObjMeshConfigFile;
+          MassSpringSystemObjMeshConfiguration massSpringSystemObjMeshConfiguration;
+          if (massSpringSystemFromObjMeshConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0) 
+          {
+            printf("Error initializing the mass spring system.\n");
+            exit(1);
+          }
+          strcpy(renderingMeshFilename, massSpringSystemObjMeshConfiguration.massSpringMeshFilename);
+        }
+        break;
 
       case TETMESH:
-	{
-	  printf("Loading mass spring system from a tet mesh file...\n");
-	  MassSpringSystemFromTetMeshConfigFile massSpringSystemFromTetMeshConfigFile;
-	  MassSpringSystemTetMeshConfiguration massSpringSystemTetMeshConfiguration;
-	  if (massSpringSystemFromTetMeshConfigFile.GenerateMassSpringSystem(massSpringSystemTetMeshConfigFilename, &massSpringSystem, &massSpringSystemTetMeshConfiguration) != 0)
-	  {
-	    printf("Error initializing the mass spring system.\n");
-	    exit(1);
-	  }
-	  strcpy(renderingMeshFilename, massSpringSystemTetMeshConfiguration.surfaceMeshFilename);
-	}
-	break;
+        {
+          printf("Loading mass spring system from a tet mesh file...\n");
+          MassSpringSystemFromTetMeshConfigFile massSpringSystemFromTetMeshConfigFile;
+          MassSpringSystemTetMeshConfiguration massSpringSystemTetMeshConfiguration;
+          if (massSpringSystemFromTetMeshConfigFile.GenerateMassSpringSystem(massSpringSystemTetMeshConfigFilename, &massSpringSystem, &massSpringSystemTetMeshConfiguration) != 0)
+          {
+            printf("Error initializing the mass spring system.\n");
+            exit(1);
+          }
+          strcpy(renderingMeshFilename, massSpringSystemTetMeshConfiguration.surfaceMeshFilename);
+        }
+        break;
 
       case CUBICMESH:
-	{
-	  printf("Loading mass spring system from a cubic mesh file...\n");
-	  MassSpringSystemFromCubicMeshConfigFile massSpringSystemFromCubicMeshConfigFile;
-	  MassSpringSystemCubicMeshConfiguration massSpringSystemCubicMeshConfiguration;
-	  if (massSpringSystemFromCubicMeshConfigFile.GenerateMassSpringSystem(massSpringSystemCubicMeshConfigFilename, &massSpringSystem, &massSpringSystemCubicMeshConfiguration) != 0)
-	  {
-	    printf("Error initializing the mass spring system.\n");
-	    exit(1);
-	  }
-	  strcpy(renderingMeshFilename, massSpringSystemCubicMeshConfiguration.surfaceMeshFilename);
-	}
-	break;
+        {
+          printf("Loading mass spring system from a cubic mesh file...\n");
+          MassSpringSystemFromCubicMeshConfigFile massSpringSystemFromCubicMeshConfigFile;
+          MassSpringSystemCubicMeshConfiguration massSpringSystemCubicMeshConfiguration;
+          if (massSpringSystemFromCubicMeshConfigFile.GenerateMassSpringSystem(massSpringSystemCubicMeshConfigFilename, &massSpringSystem, &massSpringSystemCubicMeshConfiguration) != 0)
+          {
+            printf("Error initializing the mass spring system.\n");
+            exit(1);
+          }
+          strcpy(renderingMeshFilename, massSpringSystemCubicMeshConfiguration.surfaceMeshFilename);
+        }
+        break;
 
       case CHAIN:
-	{
-	  int numParticles;        
-	  double groupStiffness;
-	  sscanf(customMassSpringSystem, "chain,%d,%lf", &numParticles, &groupStiffness);
-	  printf("Creating a chain mass-spring system with %d particles...\n", numParticles);
+        {
+          int numParticles;        
+          double groupStiffness;
+          sscanf(customMassSpringSystem, "chain,%d,%lf", &numParticles, &groupStiffness);
+          printf("Creating a chain mass-spring system with %d particles...\n", numParticles);
 
-	  double * masses = (double*) malloc (sizeof(double) * numParticles);
-	  for(int i=0; i<numParticles; i++)
-	    masses[i] = 1.0;
+          double * masses = (double*) malloc (sizeof(double) * numParticles);
+          for(int i=0; i<numParticles; i++)
+            masses[i] = 1.0;
 
-	  double * restPositions = (double*) malloc (sizeof(double) * 3 * numParticles);
-	  for(int i=0; i<numParticles; i++)
-	  {
-	    restPositions[3*i+0] = 0;
-	    restPositions[3*i+1] = (numParticles == 1) ? 0.0 : 1.0 * i / (numParticles-1);
-	    restPositions[3*i+2] = 0;
-	  }
-	  int * edges = (int*) malloc (sizeof(int) * 2 * (numParticles - 1));
-	  for(int i=0; i<numParticles-1; i++)
-	  {
-	    edges[2*i+0] = i;
-	    edges[2*i+1] = i+1;
-	  }
+          double * restPositions = (double*) malloc (sizeof(double) * 3 * numParticles);
+          for(int i=0; i<numParticles; i++)
+          {
+            restPositions[3*i+0] = 0;
+            restPositions[3*i+1] = (numParticles == 1) ? 0.0 : 1.0 * i / (numParticles-1);
+            restPositions[3*i+2] = 0;
+          }
+          int * edges = (int*) malloc (sizeof(int) * 2 * (numParticles - 1));
+          for(int i=0; i<numParticles-1; i++)
+          {
+            edges[2*i+0] = i;
+            edges[2*i+1] = i+1;
+          }
 
-	  int * edgeGroups = (int*) malloc (sizeof(int) * (numParticles - 1));
-	  for(int i=0; i<numParticles-1; i++)
-	    edgeGroups[i] = 0;
-	  double groupDamping = 0;
+          int * edgeGroups = (int*) malloc (sizeof(int) * (numParticles - 1));
+          for(int i=0; i<numParticles-1; i++)
+            edgeGroups[i] = 0;
+          double groupDamping = 0;
 
-	  massSpringSystem = new MassSpringSystem(numParticles, masses, restPositions, numParticles - 1, edges, edgeGroups, 1, &groupStiffness, &groupDamping, addGravity);
+          massSpringSystem = new MassSpringSystem(numParticles, masses, restPositions, numParticles - 1, edges, edgeGroups, 1, &groupStiffness, &groupDamping, addGravity);
 
-	  char s[96];
-	  sprintf(s,"chain-%d.obj", numParticles);
-	  massSpringSystem->CreateObjMesh(s);
-	  strcpy(renderingMeshFilename, s);
+          char s[96];
+          sprintf(s,"chain-%d.obj", numParticles);
+          massSpringSystem->CreateObjMesh(s);
+          strcpy(renderingMeshFilename, s);
 
-	  free(edgeGroups);
-	  free(edges);
-	  free(restPositions);
-	  free(masses);
+          free(edgeGroups);
+          free(edges);
+          free(restPositions);
+          free(masses);
 
-	  renderVertices = 1;
-	}
-	break;
+          renderVertices = 1;
+        }
+        break;
 
       default:
-	printf("Error: mesh spring system configuration file was not specified.\n");
-	exit(1);
-	break;
+        printf("Error: mesh spring system configuration file was not specified.\n");
+        exit(1);
+        break;
     }
 
     if (addGravity)
@@ -1367,8 +1367,8 @@ void initSimulation()
     {
       if (LoadList::load(fixedVerticesFilename, &numFixedVertices,&fixedVertices) != 0)
       {
-	printf("Error reading fixed vertices.\n");
-	exit(1);
+        printf("Error reading fixed vertices.\n");
+        exit(1);
       }
       LoadList::sort(numFixedVertices, fixedVertices);
     }
@@ -1510,25 +1510,25 @@ void initSimulation()
       case INV_STVK:
       {
       
-	isotropicMaterial = new StVKIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
-	printf("Invertible material: StVK.\n");
-	break;
+        isotropicMaterial = new StVKIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
+        printf("Invertible material: StVK.\n");
+        break;
       }
 
       case INV_NEOHOOKEAN:
-	isotropicMaterial = new NeoHookeanIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
-	printf("Invertible material: neo-Hookean.\n");
-	break;
+        isotropicMaterial = new NeoHookeanIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
+        printf("Invertible material: neo-Hookean.\n");
+        break;
 
       case INV_MOONEYRIVLIN:
-	isotropicMaterial = new MooneyRivlinIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
-	printf("Invertible material: Mooney-Rivlin.\n");
-	break;
+        isotropicMaterial = new MooneyRivlinIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
+        printf("Invertible material: Mooney-Rivlin.\n");
+        break;
 
       default:
-	printf("Error: invalid invertible material type.\n");
-	exit(1);
-	break;
+        printf("Error: invalid invertible material type.\n");
+        exit(1);
+        break;
     }
 
     // create the invertible FEM deformable model
@@ -1963,12 +1963,12 @@ void initGLUI()
 
     GLUI_Spinner * newmarkBeta_spinner = 
        glui->add_spinner_to_panel(newmark_panel,"Beta", GLUI_SPINNER_FLOAT,
-	  &newmarkBeta, 0, newmarkBeta_spinnerCallBack);
+          &newmarkBeta, 0, newmarkBeta_spinnerCallBack);
     newmarkBeta_spinner->set_speed(0.1);
 
     GLUI_Spinner * newmarkGamma_spinner = 
        glui->add_spinner_to_panel(newmark_panel,"Gamma", GLUI_SPINNER_FLOAT,
-	  &newmarkGamma, 0, newmarkGamma_spinnerCallBack);
+          &newmarkGamma, 0, newmarkGamma_spinnerCallBack);
     newmarkGamma_spinner->set_speed(0.1);
 
     glui->add_checkbox_to_panel(newmark_panel,"Static solver only", &staticSolver, 0,
