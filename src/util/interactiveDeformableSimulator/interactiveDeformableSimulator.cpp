@@ -48,7 +48,7 @@ Supported materials:
 - rotated linear (corotational linear FEM)
 - Saint-Venant Kirchoff
 - invertible Saint-Venant Kirchoff
-- invertible neo-Hookean 
+- invertible neo-Hookean
 - invertible Mooney-Rivlin
 - mass-spring system
 
@@ -116,7 +116,7 @@ using namespace std;
 #include "loadList.h"
 #include "matrixIO.h"
 
-// graphics 
+// graphics
 char windowTitleBase[4096] = "Real-time sim";
 void displayFunction(void);
 int windowID;
@@ -283,9 +283,9 @@ void stopDeformations_buttonCallBack(int code);
 void print_bitmap_string(float x, float y, float z, void * font, char * s)
 {
   glRasterPos3f(x,y,z);
-  if (s && strlen(s)) 
+  if (s && strlen(s))
   {
-    while (*s) 
+    while (*s)
     {
       glutBitmapCharacter(font, *s);
       s++;
@@ -302,7 +302,7 @@ void RenderGroundPlane(double groundPlaneHeight, double rPlane, double gPlane, d
   float planeAmbient[4] = { ambientFactor*rPlane, ambientFactor*gPlane, ambientFactor*bPlane, 1.0};
   float planeDiffuse[4] = { diffuseFactor*rPlane, diffuseFactor*gPlane, diffuseFactor*bPlane, 1.0};
   float planeSpecular[4] = { specularFactor*rPlane, specularFactor*gPlane, specularFactor*bPlane, 1.0};
-  float planeShininess = shininess; 
+  float planeShininess = shininess;
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, planeAmbient);
   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, planeDiffuse);
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, planeSpecular);
@@ -330,12 +330,12 @@ void displayFunction(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // setup model transformations
-  glMatrixMode(GL_MODELVIEW); 
+  glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   camera->Look();
 
-  // set OpenGL lighting 
+  // set OpenGL lighting
   deformableObjectRenderingMesh->SetLighting(lighting);
 
   glEnable(GL_LIGHTING);
@@ -390,7 +390,7 @@ void displayFunction(void)
     extraSceneGeometry->Render();
 
   double ground[4] = {0,1,0,-groundPlaneHeight-0.01};
-  double light[4] = {0,groundPlaneLightHeight,0,1}; 
+  double light[4] = {0,groundPlaneLightHeight,0,1};
 
   glDisable(GL_TEXTURE_2D);
 
@@ -464,20 +464,20 @@ void displayFunction(void)
 
   // render springs for mass-spring systems
   if ((massSpringSystem != NULL) & renderSprings)
-  { 
+  {
     printf("rendering springs\n");
     glLineWidth(2.0);
     renderMassSprings->Render(massSpringSystem, u);
     glLineWidth(1.0);
-  } 
+  }
 
   // ==== bitmap routines below here
-  glMatrixMode(GL_MODELVIEW); 
-  glPushMatrix(); 
-  glLoadIdentity(); 
-  glMatrixMode(GL_PROJECTION); 
-  glPushMatrix(); 
-  glLoadIdentity(); 
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
 
   // print info in case of integrator blow-up
   char s[4096];
@@ -499,9 +499,9 @@ void displayFunction(void)
     print_bitmap_string(X1,Y1,-1,GLUT_BITMAP_9_BY_15 ,s);
   }
 
-  glPopMatrix(); 
-  glMatrixMode(GL_MODELVIEW); 
-  glPopMatrix(); 
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
 
   glutSwapBuffers();
 }
@@ -519,7 +519,7 @@ void idleFunction(void)
   if ((!lockScene) && (!pauseSimulation) && (singleStepMode <= 1))
   {
     // determine force in case user is pulling on a vertex
-    if (g_iLeftMouseButton) 
+    if (g_iLeftMouseButton)
     {
       if (pulledVertex != -1)
       {
@@ -600,7 +600,7 @@ void idleFunction(void)
 
     PerformanceCounter totalDynamicsCounter;
 
-    // timestep the dynamics 
+    // timestep the dynamics
     for(int i=0; i<substepsPerTimeStep; i++)
     {
       int code = integratorBase->DoTimestep();
@@ -691,7 +691,7 @@ void idleFunction(void)
   {
     // recompute normals
     PerformanceCounter normalsCounter;
-    deformableObjectRenderingMesh->BuildNormals(); 
+    deformableObjectRenderingMesh->BuildNormals();
     if (secondaryDeformableObjectRenderingMesh != NULL)
       secondaryDeformableObjectRenderingMesh->BuildNormals();
     normalsCounter.StopCounter();
@@ -720,7 +720,7 @@ void idleFunction(void)
 
     //printf("Frames per second: %G\n", fps);
 
-    // update window title 
+    // update window title
     char windowTitle[4096] = "unknown defo model";
 
     if (deformableObject == STVK)
@@ -774,7 +774,7 @@ void idleFunction(void)
 
   cpuLoadCounter.StopCounter();
   double cpuTimePerGraphicsFrame = cpuLoadCounter.GetElapsedTime();
-  cpuLoad = cpuTimePerGraphicsFrame * fps; 
+  cpuLoad = cpuTimePerGraphicsFrame * fps;
 
   glutPostRedisplay();
 }
@@ -950,10 +950,10 @@ void reshape(int x, int y)
   windowWidth = x;
   windowHeight = y;
 
-  glMatrixMode(GL_PROJECTION); 
-  glLoadIdentity(); 
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
 
-  // compute the window aspect ratio 
+  // compute the window aspect ratio
   gluPerspective(45.0f, 1.0 * windowWidth / windowHeight, zNear, zFar);
 
   glMatrixMode(GL_MODELVIEW);
@@ -969,7 +969,7 @@ void mouseMotionFunction(int x, int y)
   g_vMousePos[0] = x;
   g_vMousePos[1] = y;
 
-  if (g_iLeftMouseButton) // left mouse button 
+  if (g_iLeftMouseButton) // left mouse button
   {
   }
 
@@ -1016,7 +1016,7 @@ void mouseButtonActivityFunction(int button, int state, int x, int y)
         int winY = view[3]-1-y;
 
         float zValue;
-        glReadPixels(winX,winY,1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &zValue); 
+        glReadPixels(winX,winY,1,1, GL_DEPTH_COMPONENT, GL_FLOAT, &zValue);
 
         GLubyte stencilValue;
         glReadPixels(winX, winY, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &stencilValue);
@@ -1109,7 +1109,7 @@ void initSimulation()
   else if (strncmp(customMassSpringSystem, "chain", 5) == 0)
     massSpringSystemSource = CHAIN;
 
-  if ((massSpringSystemSource == OBJ) || (massSpringSystemSource == TETMESH) || (massSpringSystemSource == CUBICMESH) || (massSpringSystemSource == CHAIN)) 
+  if ((massSpringSystemSource == OBJ) || (massSpringSystemSource == TETMESH) || (massSpringSystemSource == CUBICMESH) || (massSpringSystemSource == CHAIN))
     deformableObject = MASSSPRING;
 
   if (deformableObject == UNSPECIFIED)
@@ -1180,7 +1180,7 @@ void initSimulation()
     }
   }
 
-  // load mass spring system (if any) 
+  // load mass spring system (if any)
   if (deformableObject == MASSSPRING)
   {
     switch (massSpringSystemSource)
@@ -1190,7 +1190,7 @@ void initSimulation()
           printf("Loading mass spring system from an obj file...\n");
           MassSpringSystemFromObjMeshConfigFile massSpringSystemFromObjMeshConfigFile;
           MassSpringSystemObjMeshConfiguration massSpringSystemObjMeshConfiguration;
-          if (massSpringSystemFromObjMeshConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0) 
+          if (massSpringSystemFromObjMeshConfigFile.GenerateMassSpringSystem(massSpringSystemObjConfigFilename, &massSpringSystem, &massSpringSystemObjMeshConfiguration) != 0)
           {
             printf("Error initializing the mass spring system.\n");
             exit(1);
@@ -1229,7 +1229,7 @@ void initSimulation()
 
       case CHAIN:
         {
-          int numParticles;        
+          int numParticles;
           double groupStiffness;
           sscanf(customMassSpringSystem, "chain,%d,%lf", &numParticles, &groupStiffness);
           printf("Creating a chain mass-spring system with %d particles...\n", numParticles);
@@ -1316,10 +1316,10 @@ void initSimulation()
     deformableObjectRenderingMesh->SetUpTextures(SceneObject::MODULATE, SceneObject::NOMIPMAP);
   deformableObjectRenderingMesh->ResetDeformationToRest();
   deformableObjectRenderingMesh->BuildNeighboringStructure();
-  deformableObjectRenderingMesh->BuildNormals(); 
+  deformableObjectRenderingMesh->BuildNormals();
   deformableObjectRenderingMesh->SetMaterialAlpha(0.5);
 
-  // initialize the embedded triangle rendering mesh 
+  // initialize the embedded triangle rendering mesh
   secondaryDeformableObjectRenderingMesh = NULL;
   if (strcmp(secondaryRenderingMeshFilename, "__none") != 0)
   {
@@ -1328,7 +1328,7 @@ void initSimulation()
       secondaryDeformableObjectRenderingMesh->SetUpTextures(SceneObject::MODULATE, SceneObject::NOMIPMAP);
     secondaryDeformableObjectRenderingMesh->ResetDeformationToRest();
     secondaryDeformableObjectRenderingMesh->BuildNeighboringStructure();
-    secondaryDeformableObjectRenderingMesh->BuildNormals(); 
+    secondaryDeformableObjectRenderingMesh->BuildNormals();
 
     uSecondary = (double*) calloc (3 * secondaryDeformableObjectRenderingMesh->Getn(), sizeof(double));
 
@@ -1416,7 +1416,7 @@ void initSimulation()
   else if ((deformableObject == MASSSPRING) && (massSpringSystemSource == CHAIN))
   {
     uInitial = (double*) calloc (3*n, sizeof(double));
-    int numParticles = massSpringSystem->GetNumParticles(); 
+    int numParticles = massSpringSystem->GetNumParticles();
     for(int i=0; i<numParticles; i++)
     {
       uInitial[3*i+0] = 1.0 - ((numParticles == 1) ? 1.0 : 1.0 * i / (numParticles - 1));
@@ -1509,7 +1509,7 @@ void initSimulation()
     {
       case INV_STVK:
       {
-      
+
         isotropicMaterial = new StVKIsotropicMaterial(tetMesh, enableCompressionResistance, compressionResistance);
         printf("Invertible material: StVK.\n");
         break;
@@ -1895,7 +1895,7 @@ void timeStepSubdivisions_spinnerCallBack(int code)
   if (substepsPerTimeStep < 1)
     substepsPerTimeStep = 1;
 
-  integratorBase->SetTimestep(timeStep / substepsPerTimeStep); 
+  integratorBase->SetTimestep(timeStep / substepsPerTimeStep);
 
   glui->sync_live();
 }
@@ -1942,12 +1942,12 @@ void initGLUI()
 
   glui = GLUI_Master.create_glui("Controls", 0, windowWidth + 52, 0);
 
-  glui->add_spinner("Deformable object compliance:", 
-     GLUI_SPINNER_FLOAT, &deformableObjectCompliance, 0, 
+  glui->add_spinner("Deformable object compliance:",
+     GLUI_SPINNER_FLOAT, &deformableObjectCompliance, 0,
      deformableObjectCompliance_spinnerCallBack );
   glui->add_spinner("Force kernel size:", GLUI_SPINNER_INT, &forceNeighborhoodSize);
 
-  glui->add_spinner("Frequency scaling:", 
+  glui->add_spinner("Frequency scaling:",
      GLUI_SPINNER_FLOAT, &baseFrequency, 0, baseFrequency_spinnerCallBack );
 
   // ******** newmark beta, gamma *********
@@ -1958,15 +1958,15 @@ void initGLUI()
        glui->add_panel("Newmark integrator parameters", GLUI_PANEL_EMBOSSED);
     newmark_panel->set_alignment(GLUI_ALIGN_LEFT);
 
-    glui->add_checkbox_to_panel(newmark_panel, "Link Beta and Gamma", 
+    glui->add_checkbox_to_panel(newmark_panel, "Link Beta and Gamma",
        &use1DNewmarkParameterFamily, 0, newmark_checkboxuse1DNewmarkParameterFamilyCallBack);
 
-    GLUI_Spinner * newmarkBeta_spinner = 
+    GLUI_Spinner * newmarkBeta_spinner =
        glui->add_spinner_to_panel(newmark_panel,"Beta", GLUI_SPINNER_FLOAT,
           &newmarkBeta, 0, newmarkBeta_spinnerCallBack);
     newmarkBeta_spinner->set_speed(0.1);
 
-    GLUI_Spinner * newmarkGamma_spinner = 
+    GLUI_Spinner * newmarkGamma_spinner =
        glui->add_spinner_to_panel(newmark_panel,"Gamma", GLUI_SPINNER_FLOAT,
           &newmarkGamma, 0, newmarkGamma_spinnerCallBack);
     newmarkGamma_spinner->set_speed(0.1);
@@ -1998,10 +1998,10 @@ void initGLUI()
      glui->add_panel("Timestep control", GLUI_PANEL_EMBOSSED);
   timeStep_panel->set_alignment(GLUI_ALIGN_LEFT);
 
-  glui->add_checkbox_to_panel(timeStep_panel, "Sync with graphics", 
+  glui->add_checkbox_to_panel(timeStep_panel, "Sync with graphics",
      &syncTimestepWithGraphics, 0, syncTimestepWithGraphics_checkboxCallBack);
 
-  timeStep_spinner = 
+  timeStep_spinner =
      glui->add_spinner_to_panel(timeStep_panel,"Timestep [sec]", GLUI_SPINNER_FLOAT, &timeStep, 0, timeStep_spinnerCallBack);
   timeStep_spinner->set_alignment(GLUI_ALIGN_LEFT);
 
@@ -2047,7 +2047,7 @@ void initGLUI()
 int main(int argc, char* argv[])
 {
   int numFixedArgs = 2;
-  if ( argc < numFixedArgs ) 
+  if ( argc < numFixedArgs )
   {
     printf("Real-time deformable object simulator.\n");
     printf("Usage: %s [config file]\n", argv[0]);
