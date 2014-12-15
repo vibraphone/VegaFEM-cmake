@@ -1,24 +1,32 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-   ${CMAKE_SOURCE_DIR}/include
-)
-
 set(IHFEM_SRCS
- isotropicMaterial.cpp
- MooneyRivlinIsotropicMaterial.cpp
- neoHookeanIsotropicMaterial.cpp
- StVKIsotropicMaterial.cpp
- homogeneousMooneyRivlinIsotropicMaterial.cpp
- homogeneousStVKIsotropicMaterial.cpp
- homogeneousNeoHookeanIsotropicMaterial.cpp
- isotropicHyperelasticFEM.cpp
- isotropicHyperelasticFEMMT.cpp
- isotropicMaterialWithCompressionResistance.cpp
+  isotropicMaterial.cpp
+  MooneyRivlinIsotropicMaterial.cpp
+  neoHookeanIsotropicMaterial.cpp
+  StVKIsotropicMaterial.cpp
+  homogeneousMooneyRivlinIsotropicMaterial.cpp
+  homogeneousStVKIsotropicMaterial.cpp
+  homogeneousNeoHookeanIsotropicMaterial.cpp
+  isotropicHyperelasticFEM.cpp
+  isotropicHyperelasticFEMMT.cpp
+  isotropicMaterialWithCompressionResistance.cpp
 )
 
-add_library(isotropicHyperelasticFEM SHARED ${IHFEM_SRCS})
-target_link_libraries(isotropicHyperelasticFEM minivector volumetricMesh sparseMatrix)
+vega_add_library(isotropicHyperelasticFEM
+  SOURCES ${IHFEM_SRCS})
+target_include_directories(isotropicHyperelasticFEM
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(isotropicHyperelasticFEM
+  PUBLIC
+    minivector
+    volumetricMesh
+    sparseMatrix
+)

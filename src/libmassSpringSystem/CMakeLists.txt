@@ -1,13 +1,3 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libconfigFile
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-   ${CMAKE_SOURCE_DIR}/include
-)
-
 set(MSS_SRCS
  massSpringSystemFromObjMeshConfigFile.cpp
  massSpringSystemFromObjMesh.cpp
@@ -20,5 +10,18 @@ set(MSS_SRCS
  massSpringSystemFromCubicMeshConfigFile.cpp
 )
 
-add_library(massSpringSystem SHARED ${MSS_SRCS})
+vega_add_library(massSpringSystem
+  SOURCES ${MSS_SRCS})
+target_include_directories(massSpringSystem
+  PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libconfigFile
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
+  PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(massSpringSystem objMesh volumetricMesh configFile sparseMatrix)

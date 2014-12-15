@@ -123,7 +123,7 @@ public:
   // Eigenvalues are sorted in decreasing absolute order
   // Returned eigenvectors are unit length
   friend bool eigen_sym_NR(Mat3d & a, Vec3d & eig_val, Vec3d eig_vec[3],
-                           int maxIterations=50, double epsilon=0.0);
+                           int maxIterations, double epsilon);
 
 protected:
   Vec3d elt[3]; // the three rows of the matrix

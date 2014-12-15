@@ -1,12 +1,14 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_SOURCE_DIR}/include
-)
-
 set(PD_SRCS
-polarDecomposition.cpp  
-polarDecompositionGradient.cpp  
+polarDecomposition.cpp
+polarDecompositionGradient.cpp
 )
 
-add_library(polarDecomposition SHARED ${PD_SRCS})
+vega_add_library(polarDecomposition SOURCES ${PD_SRCS})
+target_include_directories(polarDecomposition
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)

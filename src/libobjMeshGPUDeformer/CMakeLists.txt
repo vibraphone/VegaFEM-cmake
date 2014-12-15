@@ -1,8 +1,3 @@
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	)
-
 set(objmeshbgpudeformer_srcs
 	objMeshGPUDeformer.cpp
 	objMeshGPUDeformer_coarseToFine.cpp
@@ -14,5 +9,16 @@ set(objmeshbgpudeformer_srcs
 	vbo.cpp
 	)
 
-add_library(objmeshbgpudeformer SHARED ${objmeshbgpudeformer_srcs})
-target_link_libraries(objmeshbgpudeformer objMesh lighting)
+vega_add_library(objmeshbgpudeformer SOURCES ${objmeshbgpudeformer_srcs})
+target_include_directories(objmeshbgpudeformer
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(objmeshbgpudeformer
+  PUBLIC
+    objMesh
+    lighting
+)

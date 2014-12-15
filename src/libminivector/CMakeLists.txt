@@ -5,9 +5,11 @@ set(MINIVEC_SRCS
    eig3.cpp
 )
 
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_SOURCE_DIR}/include
+vega_add_library(minivector SOURCES ${MINIVEC_SRCS})
+target_include_directories(minivector
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-add_library(minivector SHARED ${MINIVEC_SRCS})

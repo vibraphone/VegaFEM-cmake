@@ -1,14 +1,21 @@
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	)
-
 set(rstvk_srcs
-	StVKReducedInternalForces.cpp
-	StVKReducedInternalForcesMT.cpp
-	StVKReducedStiffnessMatrix.cpp
-	StVKReducedHessianTensor.cpp
-	)
+  StVKReducedInternalForces.cpp
+  StVKReducedInternalForcesMT.cpp
+  StVKReducedStiffnessMatrix.cpp
+  StVKReducedHessianTensor.cpp
+)
 
-add_library(reducedStvk SHARED ${rstvk_srcs})
-target_link_libraries(reducedStvk stvk modalMatrix matrix)
+vega_add_library(reducedStvk SOURCES ${rstvk_srcs})
+target_include_directories(reducedStvk
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(reducedStvk
+  PUBLIC
+    stvk
+    modalMatrix
+    matrix
+)

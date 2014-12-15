@@ -21,7 +21,7 @@ add_subdirectory(libstvk)
 add_subdirectory(libisotropicHyperelasticFEM)
 add_subdirectory(libelasticForceModel)
 add_subdirectory(libloadList)
-add_subdirectory(libgetopts)
+add_subdirectory(libvega-getopts)
 add_subdirectory(libcamera)
 
 if(BUILD_MODEL_REDUCTION)

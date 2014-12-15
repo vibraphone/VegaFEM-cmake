@@ -2,10 +2,11 @@
 # ***                  VegaFEM CMakeLists.txt                     ***
 # *******************************************************************
 
-# This file contains the top level CMakeLists.txt logic for the 
+# This file contains the top level CMakeLists.txt logic for the
 # Vega FEM software package.
 
 project(VEGAFEM)
+set(VegaFEM_VERSION 2.0)
 
 # Minimum required version of CMake
 cmake_minimum_required(VERSION 2.8)
@@ -18,6 +19,11 @@ if(NOT IS_SUBBUILD)
 else(NOT IS_SUBBUILD)
   set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 endif(NOT IS_SUBBUILD)
+
+include(CMakePackageConfigHelpers)
+include(VegaFEMMacros)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
 
 #---------------------------------------------------------------------
 # The following logic is what allows binaries to run successfully in
@@ -134,9 +140,42 @@ include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${GLUT_INCLUDE_DIR}
   ${GLUI_INCLUDE_DIR}
-  )
+)
 
 add_subdirectory(src)
+export(PACKAGE VegaFEM)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMConfigVersion.cmake"
+  VERSION ${VegaFEM_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+export(EXPORT VegaFEMTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMTargets.cmake"
+  #NAMESPACE VegaFEM::
+)
+configure_file(
+  CMake/VegaFEMConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMConfig.cmake"
+  COPYONLY
+)
+
+set(ConfigPackageLocation lib/cmake/VegaFEM)
+install(EXPORT VegaFEMTargets
+  FILE
+    VegaFEMTargets.cmake
+    #NAMESPACE VegaFEM::
+  DESTINATION
+    ${ConfigPackageLocation}
+)
+install(
+  FILES
+    CMake/VegaFEMConfig.cmake
+    "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMConfigVersion.cmake"
+  DESTINATION
+    ${ConfigPackageLocation}
+  COMPONENT
+    Devel
+)
 
 # Local Variables:
 # tab-width: 8

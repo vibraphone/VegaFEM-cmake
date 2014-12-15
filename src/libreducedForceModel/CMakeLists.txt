@@ -1,6 +1,12 @@
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	)
-
-add_library(reducedForceModel SHARED reducedForceModel.cpp reducedForceModelWithHessian.cpp)
+vega_add_library(reducedForceModel
+  SOURCES
+    reducedForceModel.cpp
+    reducedForceModelWithHessian.cpp
+)
+target_include_directories(reducedForceModel
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)

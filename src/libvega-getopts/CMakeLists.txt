@@ -1,5 +1,6 @@
-vega_add_library(performanceCounter SOURCES performanceCounter.cpp)
-target_include_directories(performanceCounter
+vega_add_library(vega-getopts
+  SOURCES getopts.cpp)
+target_include_directories(vega-getopts
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC

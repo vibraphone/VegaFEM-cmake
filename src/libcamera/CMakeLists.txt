@@ -1,7 +1,13 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_SOURCE_DIR}/include
+vega_add_library(camera
+  SOURCES camera.cpp)
+target_include_directories(camera
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-add_library(camera SHARED camera.cpp)
-target_link_libraries(camera ${OPENGL_LIBRARIES})
+target_link_libraries(camera
+  PUBLIC
+    ${OPENGL_LIBRARIES}
+)

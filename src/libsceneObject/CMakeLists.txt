@@ -1,11 +1,3 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../liblighting
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_SOURCE_DIR}/include
-)
-
 set(SCOBJ_SRCS
    sceneObject.cpp
 	sceneObject6DOF.cpp
@@ -21,5 +13,17 @@ if(CG_LIBS)
 		)
 endif(CG_LIBS)
 
-add_library(sceneObject SHARED ${SCOBJ_SRCS})
+vega_add_library(sceneObject
+  SOURCES ${SCOBJ_SRCS}
+)
+target_include_directories(sceneObject
+  PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
+   ${CMAKE_CURRENT_SOURCE_DIR}/../liblighting
+   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
+  PUBLIC
+   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(sceneObject objMesh lighting minivector ${GLUT_LIBRARIES})

@@ -1,6 +1,9 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_SOURCE_DIR}/include
+vega_add_library(configFile
+  SOURCES configFile.cpp)
+target_include_directories(configFile
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-add_library(configFile SHARED configFile.cpp)

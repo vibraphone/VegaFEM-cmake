@@ -1,11 +1,19 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libpolarDecomposition
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-   ${CMAKE_SOURCE_DIR}/include
+vega_add_library(corotationalLinearFEM
+  SOURCES corotationalLinearFEM.cpp corotationalLinearFEMMT.cpp)
+target_include_directories(corotationalLinearFEM
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libpolarDecomposition
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-add_library(corotationalLinearFEM SHARED corotationalLinearFEM.cpp corotationalLinearFEMMT.cpp)
-target_link_libraries(corotationalLinearFEM polarDecomposition volumetricMesh sparseMatrix)
+target_link_libraries(corotationalLinearFEM
+  PUBLIC
+    polarDecomposition
+    volumetricMesh
+    sparseMatrix
+)

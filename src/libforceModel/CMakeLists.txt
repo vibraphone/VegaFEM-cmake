@@ -1,8 +1,14 @@
-include_directories(
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-   ${CMAKE_SOURCE_DIR}/include
+vega_add_library(forceModel
+  SOURCES forceModel.cpp)
+target_include_directories(forceModel
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-
-add_library(forceModel SHARED forceModel.cpp)
-target_link_libraries(forceModel sparseMatrix)
+target_link_libraries(forceModel
+  PUBLIC
+    sparseMatrix
+)

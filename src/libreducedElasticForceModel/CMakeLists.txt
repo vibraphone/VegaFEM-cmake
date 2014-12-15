@@ -1,18 +1,26 @@
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	)
-
 set(reducedelasticforcemodel_srcs
-	reducedLinearForceModel.cpp
-	reducedLinearStVKForceModel.cpp
-	reducedMassSpringSystemForceModel.cpp
-	reducedMassSpringSystemForceModelWithHessian.cpp
-	reducedSpringForceModel.cpp
-	reducedStVKForceModel.cpp
-	reducedStVKForceModelWithHessian.cpp
-	reducedSubspaceStVKForceModel.cpp
-	)
+  reducedLinearForceModel.cpp
+  reducedLinearStVKForceModel.cpp
+  reducedMassSpringSystemForceModel.cpp
+  reducedMassSpringSystemForceModelWithHessian.cpp
+  reducedSpringForceModel.cpp
+  reducedStVKForceModel.cpp
+  reducedStVKForceModelWithHessian.cpp
+  reducedSubspaceStVKForceModel.cpp
+)
 
-add_library(reducedElasticForceModel SHARED ${reducedelasticforcemodel_srcs})
-target_link_libraries(reducedElasticForceModel reducedForceModel reducedStvk stvk massSpringSystem)
+vega_add_library(reducedElasticForceModel SOURCES ${reducedelasticforcemodel_srcs})
+target_include_directories(reducedElasticForceModel
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(reducedElasticForceModel
+  PUBLIC
+    reducedForceModel
+    reducedStvk
+    stvk
+    massSpringSystem
+)

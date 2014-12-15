@@ -1,8 +1,3 @@
-include_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	)
-
 set(sceneobjreduced_srcs
 	sceneObjectReduced.cpp
 	sceneObjectReduced6DOF.cpp
@@ -17,9 +12,15 @@ if(CG_LIBS)
 		)
 endif(CG_LIBS)
 
-add_library(sceneObjectReduced SHARED ${sceneobjreduced_srcs})
+vega_add_library(sceneObjectReduced SOURCES ${sceneobjreduced_srcs})
+target_include_directories(sceneObjectReduced
+  PRIVATE
+	  ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC
+	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(sceneObjectReduced objMesh lighting minivector modalMatrix sceneObject)
 if(CG_LIBS)
 	target_link_libraries(sceneObjectReduced objMeshGPUDeformer)
 endif(CG_LIBS)
-
