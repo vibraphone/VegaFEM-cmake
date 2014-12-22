@@ -31,7 +31,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "objMeshGPUDeformer_coarseToFine_fbo.h"
-#include "GL/glext.h"
+#ifndef __APPLE__
+#  include "GL/glext.h"
+#else
+#  include "OpenGL/glext.h"
+#endif
 
 #if defined(linux)
   GLAPI void APIENTRY glGenFramebuffersEXT (GLsizei, GLuint *);

@@ -11,7 +11,10 @@ set(VegaFEM_VERSION 2.0)
 # Minimum required version of CMake
 cmake_minimum_required(VERSION 2.8)
 if(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
+  cmake_policy(SET CMP0003 NEW)
+  if (POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW)
+  endif()
 endif(COMMAND CMAKE_POLICY)
 
 if(NOT IS_SUBBUILD)
@@ -25,7 +28,7 @@ include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
 option(VEGA_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
-option(VEGA_ENABLE_CUDA_SUPPORT "Should modules that require CUDA be enabled?" OFF)
+option(VEGA_ENABLE_CG_SUPPORT "Should modules that require Cg be enabled?" OFF)
 
 #---------------------------------------------------------------------
 # The following logic is what allows binaries to run successfully in
@@ -132,8 +135,8 @@ find_package(GLUI)
 if (VEGA_BUILD_MODEL_REDUCTION)
   find_package(BLAS REQUIRED)
   find_package(LAPACK REQUIRED)
-  if (VEGA_ENABLE_CUDA_SUPPORT)
-    find_package(CUDA REQUIRED)
+  if (VEGA_ENABLE_CG_SUPPORT)
+    find_package(Cg REQUIRED)
   endif()
 endif()
 
@@ -188,7 +191,7 @@ if (VEGA_BUILD_MODEL_REDUCTION)
 	  clothBW
 	  rigidBodyDynamics
   )
-  if (VEGA_ENABLE_CUDA_SUPPORT)
+  if (VEGA_ENABLE_CG_SUPPORT)
     set(VegaFEM_Modules
       ${VegaFEM_Modules}
 	    objMeshGPUDeformer

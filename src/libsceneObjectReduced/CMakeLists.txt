@@ -28,6 +28,9 @@ target_link_libraries(sceneObjectReduced
     modalMatrix
     sceneObject
 )
-if (VEGA_ENABLE_CUDA_SUPPORT)
-	target_link_libraries(sceneObjectReduced objMeshGPUDeformer)
+if (VEGA_ENABLE_Cg_SUPPORT)
+	target_link_libraries(sceneObjectReduced
+    PUBLIC
+      objMeshGPUDeformer
+  )
 endif()
