@@ -134,13 +134,53 @@ if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
   set(GLUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/other/glui/glui-2.35/src/include)
 endif(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
 
-# OpenGL is used in many places in the code, so
-# just include the necessary directories here.
-include_directories(
-  ${OPENGL_INCLUDE_DIR}
-  ${GLUT_INCLUDE_DIR}
-  ${GLUI_INCLUDE_DIR}
+set(VegaFEM_Modules
+  minivector
+  matrixIO
+  sparseMatrix
+  graph
+  imageIO
+  objMesh
+  configFile
+  lighting
+  sceneObject
+  integrator
+  performanceCounter
+  insertRows
+  sparseSolver
+  forceModel
+  integratorSparse
+  polarDecomposition
+  volumetricMesh
+  corotationalLinearFEM
+  massSpringSystem
+  stvk
+  isotropicHyperelasticFEM
+  elasticForceModel
+  loadList
+  vega-getopts
+  camera
 )
+if (BUILD_MODEL_REDUCTION)
+  set(VegaFEM_Modules
+    ${VegaFEM_Modules}
+	  hashTable
+	  quaternion
+	  glslPhong
+	  matrix
+	  openGLHelper
+	  modalMatrix
+	  reducedForceModel
+	  objMeshGPUDeformer
+	  sceneObjectReduced
+	  renderVolumetricMesh
+	  reducedStvk
+	  reducedElasticForceModel
+	  integratorDense
+	  clothBW
+	  rigidBodyDynamics
+  )
+endif()
 
 add_subdirectory(src)
 export(PACKAGE VegaFEM)

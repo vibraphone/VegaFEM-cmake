@@ -18,8 +18,13 @@ function(vega_add_library target)
   set(options)
   set(oneValueArgs)
   set(multiValueArgs SOURCES)
+  if (NOT WIN32)
+    set(libtype SHARED)
+  else()
+    set(libtype STATIC)
+  endif()
   cmake_parse_arguments(target "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-  add_library(${target} SHARED
+  add_library(${target} ${libtype}
     ${target_SOURCES}
   )
   vega_install_library(${target})
