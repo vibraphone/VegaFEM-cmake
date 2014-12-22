@@ -37,7 +37,11 @@
 #endif
 
 #include "openGL-headers.h"
-#include <GL/glext.h>
+#ifndef __APPLE__
+#  include <GL/glext.h>
+#else
+#  include <OpenGL/glext.h>
+#endif
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>

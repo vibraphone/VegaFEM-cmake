@@ -24,6 +24,8 @@ include(CMakePackageConfigHelpers)
 include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
+option(VEGA_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
+option(VEGA_ENABLE_CUDA_SUPPORT "Should modules that require CUDA be enabled?" OFF)
 
 #---------------------------------------------------------------------
 # The following logic is what allows binaries to run successfully in
@@ -127,6 +129,13 @@ endif(NOT CMAKE_CONFIGURATION_TYPES)
 find_package(OpenGL)
 find_package(GLUT)
 find_package(GLUI)
+if (VEGA_BUILD_MODEL_REDUCTION)
+  find_package(BLAS REQUIRED)
+  find_package(LAPACK REQUIRED)
+  if (VEGA_ENABLE_CUDA_SUPPORT)
+    find_package(CUDA REQUIRED)
+  endif()
+endif()
 
 if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
   add_subdirectory(src/other/glui/glui-2.35/src)
@@ -161,7 +170,7 @@ set(VegaFEM_Modules
   vega-getopts
   camera
 )
-if (BUILD_MODEL_REDUCTION)
+if (VEGA_BUILD_MODEL_REDUCTION)
   set(VegaFEM_Modules
     ${VegaFEM_Modules}
 	  hashTable
@@ -171,7 +180,6 @@ if (BUILD_MODEL_REDUCTION)
 	  openGLHelper
 	  modalMatrix
 	  reducedForceModel
-	  objMeshGPUDeformer
 	  sceneObjectReduced
 	  renderVolumetricMesh
 	  reducedStvk
@@ -180,6 +188,12 @@ if (BUILD_MODEL_REDUCTION)
 	  clothBW
 	  rigidBodyDynamics
   )
+  if (VEGA_ENABLE_CUDA_SUPPORT)
+    set(VegaFEM_Modules
+      ${VegaFEM_Modules}
+	    objMeshGPUDeformer
+    )
+  endif()
 endif()
 
 add_subdirectory(src)
@@ -188,10 +202,6 @@ write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMConfigVersion.cmake"
   VERSION ${VegaFEM_VERSION}
   COMPATIBILITY AnyNewerVersion
-)
-export(EXPORT VegaFEMTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/VegaFEM/VegaFEMTargets.cmake"
-  #NAMESPACE VegaFEM::
 )
 configure_file(
   CMake/VegaFEMConfig.cmake

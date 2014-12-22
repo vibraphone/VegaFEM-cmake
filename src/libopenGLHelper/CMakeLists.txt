@@ -10,7 +10,14 @@ target_include_directories(openglhelper
     ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/libopenGLHelper>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/libmatrixIO>
     $<INSTALL_INTERFACE:include>
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrixIO
 )
-target_link_libraries(openglhelper matrixIO imageIO)
+target_link_libraries(openglhelper
+  PUBLIC
+    matrixIO
+    imageIO
+    ${OPENGL_LIBRARIES}
+    ${GLUT_LIBRARY}
+)

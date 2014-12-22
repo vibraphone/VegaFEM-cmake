@@ -28,6 +28,10 @@ include_directories(
 )
 
 add_executable(deformsim interactiveDeformableSimulator.cpp initGraphics.cpp)
+target_include_directories(deformsim
+  PUBLIC
+    ${GLUI_INCLUDE_DIRS}
+)
 target_link_libraries(deformsim
   sceneObject
   integrator

@@ -16,9 +16,11 @@ target_include_directories(objmeshbgpudeformer
   PUBLIC
 	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    ${OPENGL_INCLUDE_DIR}
 )
 target_link_libraries(objmeshbgpudeformer
   PUBLIC
     objMesh
     lighting
+    ${OPENGL_LIBRARIES}
 )

@@ -7,3 +7,7 @@ target_include_directories(glslPhong
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(glslPhong
+  PUBLIC
+    ${OPENGL_LIBRARIES}
+)

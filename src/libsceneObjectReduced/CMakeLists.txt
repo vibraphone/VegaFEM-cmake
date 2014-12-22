@@ -20,7 +20,14 @@ target_include_directories(sceneObjectReduced
 	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(sceneObjectReduced objMesh lighting minivector modalMatrix sceneObject)
-if(CG_LIBS)
+target_link_libraries(sceneObjectReduced
+  PUBLIC
+    objMesh
+    lighting
+    minivector
+    modalMatrix
+    sceneObject
+)
+if (VEGA_ENABLE_CUDA_SUPPORT)
 	target_link_libraries(sceneObjectReduced objMeshGPUDeformer)
-endif(CG_LIBS)
+endif()

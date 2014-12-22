@@ -1,4 +1,4 @@
-vega_add_library(renderVolumetricMesh SHARED renderVolumetricMesh.cpp)
+vega_add_library(renderVolumetricMesh SOURCES renderVolumetricMesh.cpp)
 target_include_directories(renderVolumetricMesh
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -9,5 +9,5 @@ target_include_directories(renderVolumetricMesh
 target_link_libraries(renderVolumetricMesh
   PUBLIC
     volumetricMesh
-    openGLHelper
+    openglhelper
 )
