@@ -172,9 +172,9 @@ endif()
 
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
-    add_subdirectory(src/other/glui/glui-2.35/src)
+    add_subdirectory(thirdparty/glui/2.35/src)
     set(GLUI_LIBRARY glui)
-    set(GLUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/other/glui/glui-2.35/src/include)
+    set(GLUI_INCLUDE_DIR) # Empty this as library will export its own includes.
   endif()
 endif()
 
