@@ -15,7 +15,7 @@ install:
    # Install build tools:
  - sudo apt-get install -yqq git ninja-build ccache
    # Install library dependencies:
- - sudo apt-get install -yqq libatlas-dev freeglut3-dev libglui-dev
+ - sudo apt-get install -yqq libatlas-dev libblas-dev liblapack-dev freeglut3-dev libglui-dev
    # Set user/email so any tests we might have for developers pass
  - git config --global user.email "travis@travis-ci.org"
  - git config --global user.name "Travis CI"
