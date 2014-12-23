@@ -1,5 +1,3 @@
-option(VegaFEM_ENABLE_EXPOKIT "Does your system provide ExpoKit?" OFF)
-
 set(matrix_srcs
   matrixProjection.cpp
   matrixPCA.cpp
@@ -7,7 +5,7 @@ set(matrix_srcs
   matrixLAPACK.cpp
   matrix.cpp
 )
-if (VegaFEM_ENABLE_EXPOKIT)
+if (VegaFEM_ENABLE_ExpoKit_SUPPORT)
   set(matrix_srcs
     ${matrix_srcs}
     matrixExp.cpp

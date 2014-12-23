@@ -10,3 +10,11 @@ target_include_directories(sparseMatrix
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+if(VegaFEM_ENABLE_OpenMP_SUPPORT)
+  target_compile_definitions(sparseMatrix
+    PUBLIC USE_OPENMP
+  )
+  target_compile_options(sparseMatrix
+    PUBLIC "${OpenMP_CXX_FLAGS}"
+  )
+endif()
