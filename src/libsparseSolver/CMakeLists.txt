@@ -10,11 +10,12 @@ set(SOLVER_SRCS
 
 vega_add_library(sparseSolver SOURCES ${SOLVER_SRCS})
 target_include_directories(sparseSolver
-  PRIVATE
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
   PUBLIC
-   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(sparseSolver sparseMatrix)
+target_link_libraries(sparseSolver
+  PUBLIC
+    sparseMatrix
+)

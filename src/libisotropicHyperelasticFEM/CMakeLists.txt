@@ -14,13 +14,8 @@ set(IHFEM_SRCS
 vega_add_library(isotropicHyperelasticFEM
   SOURCES ${IHFEM_SRCS})
 target_include_directories(isotropicHyperelasticFEM
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libmatrix
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )

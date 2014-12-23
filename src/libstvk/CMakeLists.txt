@@ -13,13 +13,14 @@ set(STVK_SRCS
 
 vega_add_library(stvk SOURCES ${STVK_SRCS})
 target_include_directories(stvk
-  PRIVATE
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
   PUBLIC
-   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(stvk minivector volumetricMesh sparseMatrix)
+target_link_libraries(stvk
+  PUBLIC
+    minivector
+    volumetricMesh
+    sparseMatrix
+)

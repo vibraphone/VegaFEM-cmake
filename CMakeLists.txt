@@ -5,7 +5,7 @@
 # This file contains the top level CMakeLists.txt logic for the
 # Vega FEM software package.
 
-project(VEGAFEM)
+project(VegaFEM)
 set(VegaFEM_VERSION 2.0)
 
 # Minimum required version of CMake
@@ -27,8 +27,8 @@ include(CMakePackageConfigHelpers)
 include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
-option(VEGA_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
-option(VEGA_ENABLE_CG_SUPPORT "Should modules that require Cg be enabled?" OFF)
+option(VegaFEM_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
+option(VegaFEM_ENABLE_CG_SUPPORT "Should modules that require Cg be enabled?" OFF)
 
 #---------------------------------------------------------------------
 # The following logic is what allows binaries to run successfully in
@@ -76,13 +76,13 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
   # If we're not doing multi-configuration, just set the three main
   # variables to the correct values.
   if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VEGAFEM_BINARY_DIR}/${LIB_DIR} CACHE INTERNAL "Single output directory for building all libraries.")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${VegaFEM_BINARY_DIR}/${LIB_DIR} CACHE INTERNAL "Single output directory for building all libraries.")
   endif(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
   if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VEGAFEM_BINARY_DIR}/${LIB_DIR} CACHE INTERNAL "Single output directory for building all archives.")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${VegaFEM_BINARY_DIR}/${LIB_DIR} CACHE INTERNAL "Single output directory for building all archives.")
   endif(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${VEGAFEM_BINARY_DIR}/${BIN_DIR} CACHE INTERNAL "Single output directory for building all executables.")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${VegaFEM_BINARY_DIR}/${BIN_DIR} CACHE INTERNAL "Single output directory for building all executables.")
   endif(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 else(NOT CMAKE_CONFIGURATION_TYPES)
   # Multi-configuration is more difficult.  Not only do we need to
@@ -104,10 +104,10 @@ else(NOT CMAKE_CONFIGURATION_TYPES)
   # a multi-configuration setup uses "." for its internal directory -
   # if that's the case, we need to just set the various config output
   # directories to the same value.
-  set(CFG_ROOT ${VEGAFEM_BINARY_DIR})
+  set(CFG_ROOT ${VegaFEM_BINARY_DIR})
   foreach(CFG_TYPE ${CMAKE_CONFIGURATION_TYPES})
     if(NOT "${CMAKE_CFG_INTDIR}" STREQUAL ".")
-      set(CFG_ROOT ${VEGAFEM_BINARY_DIR}/${CFG_TYPE})
+      set(CFG_ROOT ${VegaFEM_BINARY_DIR}/${CFG_TYPE})
     endif(NOT "${CMAKE_CFG_INTDIR}" STREQUAL ".")
     string(TOUPPER "${CFG_TYPE}" CFG_TYPE_UPPER)
     if(NOT "CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CFG_TYPE_UPPER}")
@@ -122,21 +122,30 @@ else(NOT CMAKE_CONFIGURATION_TYPES)
     if(NOT "CMAKE_BINARY_DIR_${CFG_TYPE_UPPER}")
       set("CMAKE_BINARY_DIR_${CFG_TYPE_UPPER}" ${CFG_ROOT} CACHE INTERNAL "Toplevel binary dir for ${CFG_TYPE} building.")
     endif(NOT "CMAKE_BINARY_DIR_${CFG_TYPE_UPPER}")
-    if(NOT "VEGAFEM_BINARY_DIR_${CFG_TYPE_UPPER}")
-      set("VEGAFEM_BINARY_DIR_${CFG_TYPE_UPPER}" ${CFG_ROOT} CACHE INTERNAL "Toplevel binary dir for ${CFG_TYPE} building.")
-    endif(NOT "VEGAFEM_BINARY_DIR_${CFG_TYPE_UPPER}")
+    if(NOT "VegaFEM_BINARY_DIR_${CFG_TYPE_UPPER}")
+      set("VegaFEM_BINARY_DIR_${CFG_TYPE_UPPER}" ${CFG_ROOT} CACHE INTERNAL "Toplevel binary dir for ${CFG_TYPE} building.")
+    endif(NOT "VegaFEM_BINARY_DIR_${CFG_TYPE_UPPER}")
   endforeach()
 endif(NOT CMAKE_CONFIGURATION_TYPES)
 
 
 find_package(OpenGL)
 find_package(GLUT)
+if (GLUT_FOUND)
+  mark_as_advanced(GLUT_cocoa_LIBRARY)
+endif()
 find_package(GLUI)
-if (VEGA_BUILD_MODEL_REDUCTION)
+if (VegaFEM_BUILD_MODEL_REDUCTION)
   find_package(BLAS REQUIRED)
   find_package(LAPACK REQUIRED)
-  if (VEGA_ENABLE_CG_SUPPORT)
+  if (VegaFEM_ENABLE_CG_SUPPORT)
     find_package(Cg REQUIRED)
+    mark_as_advanced(
+      CG_COMPILER
+      CG_GL_LIBRARY
+      CG_INCLUDE_PATH
+      CG_LIBRARY
+    )
   endif()
 endif()
 
@@ -173,7 +182,7 @@ set(VegaFEM_Modules
   vega-getopts
   camera
 )
-if (VEGA_BUILD_MODEL_REDUCTION)
+if (VegaFEM_BUILD_MODEL_REDUCTION)
   set(VegaFEM_Modules
     ${VegaFEM_Modules}
 	  hashTable
@@ -191,7 +200,7 @@ if (VEGA_BUILD_MODEL_REDUCTION)
 	  clothBW
 	  rigidBodyDynamics
   )
-  if (VEGA_ENABLE_CG_SUPPORT)
+  if (VegaFEM_ENABLE_CG_SUPPORT)
     set(VegaFEM_Modules
       ${VegaFEM_Modules}
 	    objMeshGPUDeformer

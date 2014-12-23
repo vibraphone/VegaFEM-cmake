@@ -11,9 +11,8 @@ set(objmeshbgpudeformer_srcs
 
 vega_add_library(objmeshbgpudeformer SOURCES ${objmeshbgpudeformer_srcs})
 target_include_directories(objmeshbgpudeformer
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${OPENGL_INCLUDE_DIR}

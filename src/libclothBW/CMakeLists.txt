@@ -7,9 +7,8 @@ set(clothbw_srcs
 vega_add_library(clothbw
   SOURCES ${clothbw_srcs})
 target_include_directories(clothbw
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )

@@ -4,9 +4,8 @@ vega_add_library(rigidBodyDynamics
     rigidBody_generalTensor.cpp
 )
 target_include_directories(rigidBodyDynamics
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )

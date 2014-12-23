@@ -9,17 +9,8 @@ set(EFM_SRCS
 vega_add_library(elasticForceModel
   SOURCES ${EFM_SRCS})
 target_include_directories(elasticForceModel
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libforceModel
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libcorotationalLinearFEM
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libmassSpringSystem
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libstvk
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libisotropicHyperelasticFEM
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -30,4 +21,8 @@ target_link_libraries(elasticForceModel
     massSpringSystem
     stvk
     isotropicHyperelasticFEM
+  INTERFACE
+    sparseMatrix
+    minivector
+    volumetricMesh
 )

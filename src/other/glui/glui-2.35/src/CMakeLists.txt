@@ -61,13 +61,14 @@ set(GLUI_SRCS
 vega_add_library(glui
   SOURCES ${GLUI_SRCS}
 )
-target_include_directories(
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(glui
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(glui
   PUBLIC
     ${GLUT_LIBRARY}
+    ${OPENGL_LIBRARIES}
 )

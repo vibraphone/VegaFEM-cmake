@@ -13,15 +13,17 @@ set(MSS_SRCS
 vega_add_library(massSpringSystem
   SOURCES ${MSS_SRCS})
 target_include_directories(massSpringSystem
-  PRIVATE
-   ${CMAKE_CURRENT_SOURCE_DIR}
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libminivector
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libobjMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libvolumetricMesh
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libconfigFile
-   ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
   PUBLIC
-   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(massSpringSystem objMesh volumetricMesh configFile sparseMatrix)
+target_link_libraries(massSpringSystem
+  PUBLIC
+    objMesh
+    volumetricMesh
+    configFile
+    sparseMatrix
+  INTERFACE
+    minivector
+)

@@ -14,9 +14,8 @@ endif(CG_LIBS)
 
 vega_add_library(sceneObjectReduced SOURCES ${sceneobjreduced_srcs})
 target_include_directories(sceneObjectReduced
-  PRIVATE
-	  ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -28,7 +27,7 @@ target_link_libraries(sceneObjectReduced
     modalMatrix
     sceneObject
 )
-if (VEGA_ENABLE_Cg_SUPPORT)
+if (VegaFEM_ENABLE_Cg_SUPPORT)
 	target_link_libraries(sceneObjectReduced
     PUBLIC
       objMeshGPUDeformer

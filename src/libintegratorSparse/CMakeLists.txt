@@ -9,14 +9,8 @@ set(integratorsparse_srcs
 vega_add_library(integratorSparse
   SOURCES ${integratorsparse_srcs})
 target_include_directories(integratorSparse
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libinsertRows
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libsparseMatrix
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libforceModel
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libintegrator
-    ${CMAKE_CURRENT_SOURCE_DIR}/../libperformanceCounter
   PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${PARDISO_INCLUDE}
@@ -28,4 +22,7 @@ target_link_libraries(integratorSparse
     insertRows
     sparseSolver
     forceModel
+    matrixIO
+  INTERFACE
+    sparseMatrix
 )
