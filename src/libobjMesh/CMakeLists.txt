@@ -9,6 +9,16 @@ set(OBJ_SRCS
 	#triangle-closestPoint.cpp
 	tribox3.cpp
 )
+set(OBJ_HDRS
+  objMesh-disjointSet.h
+  objMesh.h
+  objMeshBinaryLoader.h
+  objMeshEncode.h
+  objMeshGraph.h
+  objMeshOrientable.h
+  simpleSphere.h
+  tribox3.h
+)
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   set(OBJ_SRCS
     ${OBJ_SRCS}
@@ -19,16 +29,20 @@ if (VegaFEM_ENABLE_OpenGL_SUPPORT)
 	  objMeshOffsetVoxels.cpp
     objMeshRender.cpp
   )
+  set(OBJ_HDRS
+    ${OBJ_HDRS}
+    boundingBox.h
+    octree.h
+    triangle.h
+    objMeshOctree.h
+    objMeshOffsetVoxels.h
+    objMeshRender.h
+  )
 endif()
 
 vega_add_library(objMesh
   SOURCES ${OBJ_SRCS}
-)
-target_include_directories(objMesh
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  PUBLIC_HEADERS ${OBJ_HDRS}
 )
 target_link_libraries(objMesh
   PUBLIC

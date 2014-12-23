@@ -1,17 +1,12 @@
-set(openglhelper_srcs
-  openGLHelper.cpp
-  printBitmap.cpp
-  saveScreenShot.cpp
-)
-
-vega_add_library(openglhelper SOURCES ${openglhelper_srcs})
-target_include_directories(openglhelper
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+vega_add_library(openglhelper
+  SOURCES
+    openGLHelper.cpp
+    printBitmap.cpp
+    saveScreenShot.cpp
+  PUBLIC_HEADERS
+    openGLHelper.h
+    printBitmap.h
+    saveScreenShot.h
 )
 target_link_libraries(openglhelper
   PUBLIC

@@ -7,12 +7,13 @@ set(EFM_SRCS
 )
 
 vega_add_library(elasticForceModel
-  SOURCES ${EFM_SRCS})
-target_include_directories(elasticForceModel
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  SOURCES ${EFM_SRCS}
+  PUBLIC_HEADERS
+    StVKForceModel.h
+    corotationalLinearFEMForceModel.h
+    isotropicHyperelasticFEMForceModel.h
+    linearFEMForceModel.h
+    massSpringSystemForceModel.h
 )
 target_link_libraries(elasticForceModel
   PUBLIC

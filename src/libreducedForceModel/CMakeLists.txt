@@ -2,12 +2,9 @@ vega_add_library(reducedForceModel
   SOURCES
     reducedForceModel.cpp
     reducedForceModelWithHessian.cpp
-)
-target_include_directories(reducedForceModel
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  PUBLIC_HEADERS
+    reducedForceModel.h
+    reducedForceModelWithHessian.h
 )
 target_link_libraries(reducedForceModel
   PUBLIC

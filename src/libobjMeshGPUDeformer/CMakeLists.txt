@@ -1,20 +1,27 @@
-set(objmeshbgpudeformer_srcs
-	objMeshGPUDeformer.cpp
-	objMeshGPUDeformer_coarseToFine.cpp
-	objMeshGPUDeformer_coarseToFine_fbo.cpp
-	objMeshGPUDeformer_uUq.cpp
-	objMeshGPUDeformer_uUq_fbo.cpp
-	objMeshGPUDeformer_uUq_pbuffer.cpp
-	objMeshGPUDeformer_uUq_setLighting.cpp
-	vbo.cpp
-	)
-
-vega_add_library(objMeshGPUDeformer SOURCES ${objmeshbgpudeformer_srcs})
+vega_add_library(objMeshGPUDeformer
+  SOURCES
+    objMeshGPUDeformer.cpp
+    objMeshGPUDeformer_coarseToFine.cpp
+    objMeshGPUDeformer_coarseToFine_fbo.cpp
+    objMeshGPUDeformer_uUq.cpp
+    objMeshGPUDeformer_uUq_fbo.cpp
+    objMeshGPUDeformer_uUq_pbuffer.cpp
+    objMeshGPUDeformer_uUq_setLighting.cpp
+    vbo.cpp
+  PUBLIC_HEADERS
+    glh_extensions.h
+    glh_genext.h
+    objMeshGPUDeformer.h
+    objMeshGPUDeformer_coarseToFine.h
+    objMeshGPUDeformer_coarseToFine_fbo.h
+    objMeshGPUDeformer_uUq.h
+    objMeshGPUDeformer_uUq_fbo.h
+    objMeshGPUDeformer_uUq_pbuffer.h
+    objMeshGPUDeformer_uUq_setLighting.h
+    vbo.h
+)
 target_include_directories(objMeshGPUDeformer
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
     ${OPENGL_INCLUDE_DIR}
     ${CG_INCLUDE_PATH}
 )

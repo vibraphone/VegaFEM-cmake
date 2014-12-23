@@ -271,6 +271,7 @@ install(
   COMPONENT
     Devel
 )
+add_subdirectory(include)
 
 # Local Variables:
 # tab-width: 8

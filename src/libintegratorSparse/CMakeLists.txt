@@ -1,19 +1,16 @@
-set(integratorsparse_srcs
-  centralDifferencesSparse.cpp
-  eulerSparse.cpp
-  implicitBackwardEulerSparse.cpp
-  implicitNewmarkSparse.cpp
-  integratorBaseSparse.cpp
-  )
-
 vega_add_library(integratorSparse
-  SOURCES ${integratorsparse_srcs})
-target_include_directories(integratorSparse
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    ${PARDISO_INCLUDE}
+  SOURCES
+    centralDifferencesSparse.cpp
+    eulerSparse.cpp
+    implicitBackwardEulerSparse.cpp
+    implicitNewmarkSparse.cpp
+    integratorBaseSparse.cpp
+  PUBLIC_HEADERS
+    centralDifferencesSparse.h
+    eulerSparse.h
+    implicitBackwardEulerSparse.h
+    implicitNewmarkSparse.h
+    integratorBaseSparse.h
 )
 target_link_libraries(integratorSparse
   PUBLIC

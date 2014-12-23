@@ -1,25 +1,32 @@
-set(VOL_SRCS
-  volumetricMeshParser.cpp
-  generateInterpolationMatrix.cpp
-  generateMassMatrix.cpp
-  generateSurfaceMesh.cpp
-  generateMeshGraph.cpp
-  computeStiffnessMatrixNullspace.cpp
-  cubicMesh.cpp
-  tetMesh.cpp
-  volumetricMeshLoader.cpp
-  volumetricMesh.cpp
-  volumetricMeshENuMaterial.cpp
-  volumetricMeshMooneyRivlinMaterial.cpp
-  volumetricMeshExtensions.cpp
-)
-
-vega_add_library(volumetricMesh SOURCES ${VOL_SRCS})
-target_include_directories(volumetricMesh
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+vega_add_library(volumetricMesh
+  SOURCES
+    volumetricMeshParser.cpp
+    generateInterpolationMatrix.cpp
+    generateMassMatrix.cpp
+    generateSurfaceMesh.cpp
+    generateMeshGraph.cpp
+    computeStiffnessMatrixNullspace.cpp
+    cubicMesh.cpp
+    tetMesh.cpp
+    volumetricMeshLoader.cpp
+    volumetricMesh.cpp
+    volumetricMeshENuMaterial.cpp
+    volumetricMeshMooneyRivlinMaterial.cpp
+    volumetricMeshExtensions.cpp
+  PUBLIC_HEADERS
+    computeStiffnessMatrixNullspace.h
+    cubicMesh.h
+    generateInterpolationMatrix.h
+    generateMassMatrix.h
+    generateMeshGraph.h
+    generateSurfaceMesh.h
+    tetMesh.h
+    volumetricMesh.h
+    volumetricMeshENuMaterial.h
+    volumetricMeshExtensions.h
+    volumetricMeshLoader.h
+    volumetricMeshMooneyRivlinMaterial.h
+    volumetricMeshParser.h
 )
 target_link_libraries(volumetricMesh
   PUBLIC

@@ -2,12 +2,9 @@ vega_add_library(rigidBodyDynamics
   SOURCES
     rigidBody.cpp
     rigidBody_generalTensor.cpp
-)
-target_include_directories(rigidBodyDynamics
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  PUBLIC_HEADERS
+    rigidBody.h
+    rigidBody_generalTensor.h
 )
 target_link_libraries(rigidBodyDynamics
   PUBLIC

@@ -1,23 +1,26 @@
-set(IHFEM_SRCS
-  isotropicMaterial.cpp
-  MooneyRivlinIsotropicMaterial.cpp
-  neoHookeanIsotropicMaterial.cpp
-  StVKIsotropicMaterial.cpp
-  homogeneousMooneyRivlinIsotropicMaterial.cpp
-  homogeneousStVKIsotropicMaterial.cpp
-  homogeneousNeoHookeanIsotropicMaterial.cpp
-  isotropicHyperelasticFEM.cpp
-  isotropicHyperelasticFEMMT.cpp
-  isotropicMaterialWithCompressionResistance.cpp
-)
-
 vega_add_library(isotropicHyperelasticFEM
-  SOURCES ${IHFEM_SRCS})
-target_include_directories(isotropicHyperelasticFEM
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  SOURCES
+    isotropicMaterial.cpp
+    MooneyRivlinIsotropicMaterial.cpp
+    neoHookeanIsotropicMaterial.cpp
+    StVKIsotropicMaterial.cpp
+    homogeneousMooneyRivlinIsotropicMaterial.cpp
+    homogeneousStVKIsotropicMaterial.cpp
+    homogeneousNeoHookeanIsotropicMaterial.cpp
+    isotropicHyperelasticFEM.cpp
+    isotropicHyperelasticFEMMT.cpp
+    isotropicMaterialWithCompressionResistance.cpp
+  PUBLIC_HEADERS
+    MooneyRivlinIsotropicMaterial.h
+    StVKIsotropicMaterial.h
+    homogeneousMooneyRivlinIsotropicMaterial.h
+    homogeneousNeoHookeanIsotropicMaterial.h
+    homogeneousStVKIsotropicMaterial.h
+    isotropicHyperelasticFEM.h
+    isotropicHyperelasticFEMMT.h
+    isotropicMaterial.h
+    isotropicMaterialWithCompressionResistance.h
+    neoHookeanIsotropicMaterial.h
 )
 target_link_libraries(isotropicHyperelasticFEM
   PUBLIC

@@ -8,20 +8,32 @@ set(MSS_SRCS
   massSpringSystemFromCubicMesh.cpp
   massSpringSystemFromCubicMeshConfigFile.cpp
 )
+set(MSS_HDRS
+    massSpringSystem.h
+    massSpringSystemFromCubicMesh.h
+    massSpringSystemFromCubicMeshConfigFile.h
+    massSpringSystemFromObjMesh.h
+    massSpringSystemFromObjMeshConfigFile.h
+    massSpringSystemFromTetMesh.h
+    massSpringSystemFromTetMeshConfigFile.h
+    massSpringSystemMT.h
+)
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   set(MSS_SRCS
     ${MSS_SRCS}
     renderSprings.cpp
   )
+  set(MSS_HDRS
+    ${MSS_HDRS}
+    renderSprings.h
+  )
 endif()
 
 vega_add_library(massSpringSystem
-  SOURCES ${MSS_SRCS})
-target_include_directories(massSpringSystem
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+  SOURCES
+    ${MSS_SRCS}
+  PUBLIC_HEADERS
+    ${MSS_HDRS}
 )
 target_link_libraries(massSpringSystem
   PUBLIC

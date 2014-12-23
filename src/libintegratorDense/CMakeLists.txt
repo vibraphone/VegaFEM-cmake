@@ -1,18 +1,15 @@
-set(integratordense_srcs
-	centralDifferencesDense.cpp
-	implicitBackwardEulerDense.cpp
-	implicitNewmarkDense.cpp
-	integratorBaseDense.cpp
-)
-
 vega_add_library(integratordense
-  SOURCES ${integratordense_srcs})
-target_include_directories(integratordense
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-	  ${PARDISO_INCLUDE}
+  SOURCES
+    centralDifferencesDense.cpp
+    implicitBackwardEulerDense.cpp
+    implicitNewmarkDense.cpp
+    integratorBaseDense.cpp
+  PUBLIC_HEADERS
+    IPIVC.h
+    centralDifferencesDense.h
+    implicitBackwardEulerDense.h
+    implicitNewmarkDense.h
+    integratorBaseDense.h
 )
 target_link_libraries(integratordense
   PUBLIC

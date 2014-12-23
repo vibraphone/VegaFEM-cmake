@@ -5,19 +5,30 @@ set(matrix_srcs
   matrixLAPACK.cpp
   matrix.cpp
 )
+set(matrix_hdrs
+    expokit_xgpadm.h
+    matrix.h
+    matrixBLAS.h
+    matrixLAPACK.h
+    matrixPCA.h
+    matrixProjection.h
+)
 if (VegaFEM_ENABLE_ExpoKit_SUPPORT)
   set(matrix_srcs
     ${matrix_srcs}
     matrixExp.cpp
   )
+  set(matrix_hdrs
+    ${matrix_hdrs}
+    matrixExp.h
+  )
 endif()
 
-vega_add_library(matrix SOURCES ${matrix_srcs})
-target_include_directories(matrix
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+vega_add_library(matrix
+  SOURCES
+    ${matrix_srcs}
+  PUBLIC_HEADERS
+    ${matrix_hdrs}
 )
 target_link_libraries(matrix
   PUBLIC

@@ -17,7 +17,7 @@ endfunction()
 function(vega_add_library target)
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES)
+  set(multiValueArgs SOURCES PUBLIC_HEADERS)
   if (NOT WIN32)
     set(libtype SHARED)
   else()
@@ -27,5 +27,18 @@ function(vega_add_library target)
   add_library(${target} ${libtype}
     ${target_SOURCES}
   )
-  vega_install_library(${target})
+  target_include_directories(${target}
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<INSTALL_INTERFACE:include/vega>
+      $<INSTALL_INTERFACE:include/vega/${target}>
+    )
+  if (target_PUBLIC_HEADERS)
+    vega_install_library(${target})
+    install(FILES ${target_PUBLIC_HEADERS}
+      DESTINATION include/vega/${target}
+      COMPONENT Development
+    )
+  endif()
 endfunction()
