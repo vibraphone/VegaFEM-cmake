@@ -1,14 +1,19 @@
 set(MSS_SRCS
- massSpringSystemFromObjMeshConfigFile.cpp
- massSpringSystemFromObjMesh.cpp
- massSpringSystemFromTetMeshConfigFile.cpp
- massSpringSystemFromTetMesh.cpp
- massSpringSystemMT.cpp
- massSpringSystem.cpp
- renderSprings.cpp
- massSpringSystemFromCubicMesh.cpp
- massSpringSystemFromCubicMeshConfigFile.cpp
+  massSpringSystemFromObjMeshConfigFile.cpp
+  massSpringSystemFromObjMesh.cpp
+  massSpringSystemFromTetMeshConfigFile.cpp
+  massSpringSystemFromTetMesh.cpp
+  massSpringSystemMT.cpp
+  massSpringSystem.cpp
+  massSpringSystemFromCubicMesh.cpp
+  massSpringSystemFromCubicMeshConfigFile.cpp
 )
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  set(MSS_SRCS
+    ${MSS_SRCS}
+    renderSprings.cpp
+  )
+endif()
 
 vega_add_library(massSpringSystem
   SOURCES ${MSS_SRCS})
@@ -27,3 +32,10 @@ target_link_libraries(massSpringSystem
   INTERFACE
     minivector
 )
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  target_link_libraries(massSpringSystem
+    PUBLIC
+      ${OPENGL_gl_LIBRARY}
+      ${OPENGL_glu_LIBRARY}
+  )
+endif()

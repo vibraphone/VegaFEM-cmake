@@ -9,8 +9,8 @@ set(objmeshbgpudeformer_srcs
 	vbo.cpp
 	)
 
-vega_add_library(objmeshbgpudeformer SOURCES ${objmeshbgpudeformer_srcs})
-target_include_directories(objmeshbgpudeformer
+vega_add_library(objMeshGPUDeformer SOURCES ${objmeshbgpudeformer_srcs})
+target_include_directories(objMeshGPUDeformer
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
@@ -22,16 +22,16 @@ if (APPLE)
   # The nVidia installer puts the framework in /Library/Frameworks/Cg.framework
   # but modern Xcode compilers expect frameworks to live in the SDK directory
   # if one is specified... so add framework search paths to fix this:
-  target_compile_options(objmeshbgpudeformer
+  target_compile_options(objMeshGPUDeformer
     PUBLIC
       -iframework "${Cg_FRAMEWORKS}/.."
   )
-  set_target_properties(objmeshbgpudeformer
+  set_target_properties(objMeshGPUDeformer
     PROPERTIES
     LINK_FLAGS "-F ${Cg_FRAMEWORKS}/.."
   )
 endif()
-target_link_libraries(objmeshbgpudeformer
+target_link_libraries(objMeshGPUDeformer
   PUBLIC
     objMesh
     lighting

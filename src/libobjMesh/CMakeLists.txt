@@ -1,23 +1,29 @@
 set(OBJ_SRCS
-	boundingBox.cpp
-   objMesh.cpp
+  objMesh.cpp
 	objMesh-disjointSet.cpp
-   objMeshBinaryLoader.cpp
-   objMeshEncode.cpp
+  objMeshBinaryLoader.cpp
+  objMeshEncode.cpp
 	objMeshGraph.cpp
-	objMeshOctree.cpp
-	objMeshOffsetVoxels.cpp
 	objMeshOrientable.cpp
-   objMeshRender.cpp
-	octree.cpp
 	simpleSphere.cpp
 	#triangle-closestPoint.cpp
-	triangle.cpp
 	tribox3.cpp
 )
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  set(OBJ_SRCS
+    ${OBJ_SRCS}
+	  boundingBox.cpp
+	  octree.cpp
+	  triangle.cpp
+	  objMeshOctree.cpp
+	  objMeshOffsetVoxels.cpp
+    objMeshRender.cpp
+  )
+endif()
 
 vega_add_library(objMesh
-  SOURCES ${OBJ_SRCS})
+  SOURCES ${OBJ_SRCS}
+)
 target_include_directories(objMesh
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -31,6 +37,11 @@ target_link_libraries(objMesh
     imageIO
     sparseMatrix
     graph
-    ${OPENGL_gl_LIBRARY}
-    ${OPENGL_glu_LIBRARY}
 )
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  target_link_libraries(objMesh
+    PUBLIC
+      ${OPENGL_gl_LIBRARY}
+      ${OPENGL_glu_LIBRARY}
+  )
+endif()

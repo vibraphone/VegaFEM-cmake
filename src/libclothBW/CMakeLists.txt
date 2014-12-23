@@ -14,7 +14,7 @@ target_include_directories(clothbw
 )
 target_link_libraries(clothbw
   PUBLIC
-    minivector
     objMesh
+    minivector
     sparseMatrix
 )

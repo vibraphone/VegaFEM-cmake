@@ -1,17 +1,17 @@
 set(VOL_SRCS
-volumetricMeshParser.cpp
-generateInterpolationMatrix.cpp
-generateMassMatrix.cpp
-generateSurfaceMesh.cpp
-generateMeshGraph.cpp
-computeStiffnessMatrixNullspace.cpp
-cubicMesh.cpp
-tetMesh.cpp
-volumetricMeshLoader.cpp
-volumetricMesh.cpp
-volumetricMeshENuMaterial.cpp
-volumetricMeshMooneyRivlinMaterial.cpp
-volumetricMeshExtensions.cpp
+  volumetricMeshParser.cpp
+  generateInterpolationMatrix.cpp
+  generateMassMatrix.cpp
+  generateSurfaceMesh.cpp
+  generateMeshGraph.cpp
+  computeStiffnessMatrixNullspace.cpp
+  cubicMesh.cpp
+  tetMesh.cpp
+  volumetricMeshLoader.cpp
+  volumetricMesh.cpp
+  volumetricMeshENuMaterial.cpp
+  volumetricMeshMooneyRivlinMaterial.cpp
+  volumetricMeshExtensions.cpp
 )
 
 vega_add_library(volumetricMesh SOURCES ${VOL_SRCS})

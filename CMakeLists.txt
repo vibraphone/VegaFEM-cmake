@@ -28,7 +28,11 @@ include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
 option(VegaFEM_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
-option(VegaFEM_ENABLE_CG_SUPPORT "Should modules that require Cg be enabled?" OFF)
+option(VegaFEM_ENABLE_OpenGL_SUPPORT "Should modules that require OpenGL be enabled?" ON)
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  # Only add Cg support if OpenGL is turned on. This may change in the future.
+  option(VegaFEM_ENABLE_Cg_SUPPORT "Should modules that require Cg be enabled?" OFF)
+endif()
 
 #---------------------------------------------------------------------
 # The following logic is what allows binaries to run successfully in
@@ -129,16 +133,18 @@ else(NOT CMAKE_CONFIGURATION_TYPES)
 endif(NOT CMAKE_CONFIGURATION_TYPES)
 
 
-find_package(OpenGL)
-find_package(GLUT)
-if (GLUT_FOUND)
-  mark_as_advanced(GLUT_cocoa_LIBRARY)
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  find_package(OpenGL)
+  find_package(GLUT)
+  if (GLUT_FOUND)
+    mark_as_advanced(GLUT_cocoa_LIBRARY)
+  endif()
+  find_package(GLUI)
 endif()
-find_package(GLUI)
 if (VegaFEM_BUILD_MODEL_REDUCTION)
   find_package(BLAS REQUIRED)
   find_package(LAPACK REQUIRED)
-  if (VegaFEM_ENABLE_CG_SUPPORT)
+  if (VegaFEM_ENABLE_Cg_SUPPORT)
     find_package(Cg REQUIRED)
     mark_as_advanced(
       CG_COMPILER
@@ -149,11 +155,13 @@ if (VegaFEM_BUILD_MODEL_REDUCTION)
   endif()
 endif()
 
-if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
-  add_subdirectory(src/other/glui/glui-2.35/src)
-  set(GLUI_LIBRARY glui)
-  set(GLUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/other/glui/glui-2.35/src/include)
-endif(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
+    add_subdirectory(src/other/glui/glui-2.35/src)
+    set(GLUI_LIBRARY glui)
+    set(GLUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/other/glui/glui-2.35/src/include)
+  endif()
+endif()
 
 set(VegaFEM_Modules
   minivector
@@ -161,16 +169,14 @@ set(VegaFEM_Modules
   sparseMatrix
   graph
   imageIO
-  objMesh
   configFile
-  lighting
-  sceneObject
   integrator
   performanceCounter
   insertRows
   sparseSolver
   forceModel
   integratorSparse
+  objMesh
   polarDecomposition
   volumetricMesh
   corotationalLinearFEM
@@ -180,31 +186,43 @@ set(VegaFEM_Modules
   elasticForceModel
   loadList
   vega-getopts
-  camera
 )
 if (VegaFEM_BUILD_MODEL_REDUCTION)
   set(VegaFEM_Modules
     ${VegaFEM_Modules}
+	  clothBW
 	  hashTable
-	  quaternion
-	  glslPhong
+	  integratorDense
 	  matrix
-	  openGLHelper
 	  modalMatrix
+	  quaternion
 	  reducedForceModel
-	  sceneObjectReduced
-	  renderVolumetricMesh
 	  reducedStvk
 	  reducedElasticForceModel
-	  integratorDense
-	  clothBW
 	  rigidBodyDynamics
   )
-  if (VegaFEM_ENABLE_CG_SUPPORT)
+endif()
+if (VegaFEM_ENABLE_OpenGL_SUPPORT)
+  set(VegaFEM_Modules
+    ${VegaFEM_Modules}
+    camera
+    lighting
+    sceneObject
+  )
+  if (VegaFEM_BUILD_MODEL_REDUCTION)
     set(VegaFEM_Modules
       ${VegaFEM_Modules}
-	    objMeshGPUDeformer
+	    glslPhong
+	    openGLHelper
+	    sceneObjectReduced
+	    renderVolumetricMesh
     )
+    if (VegaFEM_ENABLE_Cg_SUPPORT)
+      set(VegaFEM_Modules
+        ${VegaFEM_Modules}
+	      objMeshGPUDeformer
+      )
+    endif()
   endif()
 endif()
 
