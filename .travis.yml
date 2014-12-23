@@ -1,0 +1,33 @@
+language: cpp
+compiler:
+  #- gcc # Avoid gcc because it exhausts travis VM memory
+  - clang
+
+before_install:
+   # Add PPA for recent boost libraries
+ #- sudo add-apt-repository --yes ppa:boost-latest/ppa
+ #- sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+ #- sudo add-apt-repository --yes ppa:kubuntu-ppa/backports
+   # Make sure package index is up to date:
+ - sudo apt-get -qq update
+
+install:
+   # Install build tools:
+ - sudo apt-get install -yqq git ninja-build ccache
+   # Install library dependencies:
+ - sudo apt-get install -yqq libatlas-dev libatlas-headers libglut3-dev libglui-dev
+   # Set user/email so any tests we might have for developers pass
+ - git config --global user.email "travis@travis-ci.org"
+ - git config --global user.name "Travis CI"
+ - mkdir -p ~/VegaFEM-deps/cmake
+   # Download a new cmake since Ubuntu's is horribly old.
+ - cd ~/VegaFEM-deps/cmake
+ - wget -q "http://www.cmake.org/files/v3.1/cmake-3.1.0-Linux-x86_64.tar.gz"
+ - tar xzf "cmake-3.1.0-Linux-x86_64.tar.gz"
+ - mv cmake-3.1.0-Linux-x86_64 install
+
+script:
+ - mkdir ~/VegaFEM-build && cd ~/VegaFEM-build
+ - ~/VegaFEM-deps/cmake/install/bin/cmake -G Ninja "-DSITE:STRING=travis-ci.org" "-DBUILDNAME:STRING=${TRAVIS_OS_NAME}-${CC}-Job.${TRAVIS_JOB_NUMBER}-SMTK" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DVegaFEM_BUILD_MODEL_REDUCTION:BOOL=ON -DVegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=ON -DVegaFEM_ENABLE_OpenMP_SUPPORT:BOOL=OFF "-DCMAKE_INSTALL_PREFIX=${HOME}/VegaFEM-install" ${TRAVIS_BUILD_DIR}
+ - ninja
+ - ninja install
