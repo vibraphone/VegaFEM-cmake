@@ -2,7 +2,7 @@ if (NOT APPLE)
   find_package(X11)
 endif()
 
-find_package(GLUT)
+# find_package(GLUT)
 
 #LIBGLUI = -L./lib -lglui
 #LIBGL   = -lGLU -lGL

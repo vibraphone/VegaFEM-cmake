@@ -10,6 +10,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libinsertRows
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegrator
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorSparse
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorDense
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libisotropicHyperelasticFEM
     ${CMAKE_CURRENT_SOURCE_DIR}/../../liblighting
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libloadList
@@ -27,36 +28,42 @@ include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-add_executable(deformsim interactiveDeformableSimulator.cpp initGraphics.cpp)
-target_include_directories(deformsim
+add_executable(reducedDynamicSolver-rt reducedDynamicSolver-rt.cpp initGraphics.cpp)
+target_include_directories(reducedDynamicSolver-rt
   PUBLIC
     ${GLUI_INCLUDE_DIRS}
 )
-target_link_libraries(deformsim
-  sceneObject
-  integrator
-  integratorSparse
-  elasticForceModel
-  forceModel
-  sparseMatrix
-  loadList
-  insertRows
-  lighting
-  configFile
-  volumetricMesh
-  vega-getopts
-  camera
-  graph
-  isotropicHyperelasticFEM
-  minivector
-  stvk
-  corotationalLinearFEM
-  polarDecomposition
-  massSpringSystem
-  objMesh
-  sparseSolver
-  ${OPENGL_gl_LIBRARY}
-  ${GLUT_glut_LIBRARY}
-  ${OPENGL_glu_LIBRARY}
-  ${GLUI_LIBRARY}
-)
+target_link_libraries(reducedDynamicSolver-rt 
+  objMeshGPUDeformer 
+  objMesh 
+  imageIO 
+  modalMatrix 
+  sceneObjectReduced 
+  sceneObject 
+  objMeshGPUDeformer 
+  objMesh 
+  imageIO 
+  integratorSparse 
+  integratorDense 
+  integrator 
+  reducedStvk 
+  stvk 
+  reducedElasticForceModel 
+  reducedForceModel 
+  forceModel 
+  matrix 
+  matrixIO 
+  lighting 
+  configFile 
+  volumetricMesh 
+  loadList 
+  vega-getopts 
+  camera 
+  minivector 
+  openGLHelper
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${OPENGL_gl_LIBRARY} 
+  ${GLUT_glut_LIBRARY} 
+  ${OPENGL_glu_LIBRARY} 
+  ${GLUI_LIBRARY})
+

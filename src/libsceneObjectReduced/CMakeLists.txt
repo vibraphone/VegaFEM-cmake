@@ -10,7 +10,7 @@ set(sceneobjreduced_hdrs
   sceneObjectReducedCPU.h
   sceneObjectReducedCPU6DOF.h
 )
-if(CG_LIBS)
+if(VegaFEM_ENABLE_Cg_SUPPORT)
   set(sceneobjreduced_srcs
     ${sceneobjreduced_srcs}
     sceneObjectReducedGPU.cpp
@@ -21,7 +21,7 @@ if(CG_LIBS)
     sceneObjectReducedGPU.h
     sceneObjectReducedGPU6DOF.h
   )
-endif(CG_LIBS)
+endif(VegaFEM_ENABLE_Cg_SUPPORT)
 
 vega_add_library(sceneObjectReduced
   SOURCES ${sceneobjreduced_srcs}

@@ -8,7 +8,7 @@ vega_add_library(reducedForceModel
 )
 target_link_libraries(reducedForceModel
   PUBLIC
-    ${LAPACK_LIBRARIES}
-    ${BLAS_LIBRARIES}
+#     ${LAPACK_LIBRARIES}
+#     ${BLAS_LIBRARIES}
     modalMatrix
 )

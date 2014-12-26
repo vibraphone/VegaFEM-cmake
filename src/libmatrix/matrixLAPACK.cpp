@@ -31,44 +31,44 @@
 #include "matrixBLAS.h"
 
 #ifdef __APPLE__
-  #define DGETRF dgetrf_
-  #define DGETRI dgetri_
-  #define SGETRF sgetrf_
-  #define SGETRI sgetri_
-  #define DGESVD dgesvd_
-  #define SGESVD sgesvd_
-  #define DGELSY dgelsy_
-  #define SGELSY sgelsy_
-  #define DGESV dgesv_
-  #define SGESV sgesv_
-  #define DSYEV dsyev_
-  #define SSYEV ssyev_
-  #define DSYGV dsygv_
-  #define SSYGV ssygv_
-  #define SGEEV sgeev_
-  #define DGEEV dgeev_
-  #define DGPADM dgpadm_
-  #define SGPADM sgpadm_
+//   #define DGETRF dgetrf_
+//   #define DGETRI dgetri_
+//   #define SGETRF sgetrf_
+//   #define SGETRI sgetri_
+//   #define DGESVD dgesvd_
+//   #define SGESVD sgesvd_
+//   #define DGELSY dgelsy_
+//   #define SGELSY sgelsy_
+//   #define DGESV dgesv_
+//   #define SGESV sgesv_
+//   #define DSYEV dsyev_
+//   #define SSYEV ssyev_
+//   #define DSYGV dsygv_
+//   #define SSYGV ssygv_
+//   #define SGEEV sgeev_
+//   #define DGEEV dgeev_
+//   #define DGPADM dgpadm_
+//   #define SGPADM sgpadm_
   #define INTEGER __CLPK_integer
 #else
-  #define DGETRF dgetrf
-  #define DGETRI dgetri
-  #define SGETRF sgetrf
-  #define SGETRI sgetri
-  #define DGESVD dgesvd
-  #define SGESVD sgesvd
-  #define DGELSY dgelsy
-  #define SGELSY sgelsy
-  #define DGESV dgesv
-  #define SGESV sgesv
-  #define DSYEV dsyev
-  #define SSYEV ssyev
-  #define DSYGV dsygv
-  #define SSYGV ssygv
-  #define SGEEV sgeev
-  #define DGEEV dgeev
-  #define DGPADM dgpadm_
-  #define SGPADM sgpadm_
+//   #define DGETRF dgetrf
+//   #define DGETRI dgetri
+//   #define SGETRF sgetrf
+//   #define SGETRI sgetri
+//   #define DGESVD dgesvd
+//   #define SGESVD sgesvd
+//   #define DGELSY dgelsy
+//   #define SGELSY sgelsy
+//   #define DGESV dgesv
+//   #define SGESV sgesv
+//   #define DSYEV dsyev
+//   #define SSYEV ssyev
+//   #define DSYGV dsygv
+//   #define SSYGV ssygv
+//   #define SGEEV sgeev
+//   #define DGEEV dgeev
+//   #define DGPADM dgpadm_
+//   #define SGPADM sgpadm_
   #define INTEGER int
 #endif
 

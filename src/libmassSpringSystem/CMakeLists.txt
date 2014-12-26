@@ -1,4 +1,4 @@
-set(MSS_SRCS
+set(massspringsystem_srcs
   massSpringSystemFromObjMeshConfigFile.cpp
   massSpringSystemFromObjMesh.cpp
   massSpringSystemFromTetMeshConfigFile.cpp
@@ -8,7 +8,7 @@ set(MSS_SRCS
   massSpringSystemFromCubicMesh.cpp
   massSpringSystemFromCubicMeshConfigFile.cpp
 )
-set(MSS_HDRS
+set(massspringsystem_hdrs
     massSpringSystem.h
     massSpringSystemFromCubicMesh.h
     massSpringSystemFromCubicMeshConfigFile.h
@@ -16,24 +16,23 @@ set(MSS_HDRS
     massSpringSystemFromObjMeshConfigFile.h
     massSpringSystemFromTetMesh.h
     massSpringSystemFromTetMeshConfigFile.h
-    massSpringSystemMT.h
 )
+
+if(VegaFEM_ENABLE_PTHREADS_SUPPORT)
+  list(APPEND massspringsystem_srcs massSpringSystemMT.cpp)
+  list(APPEND massspringsystem_hdrs massSpringSystemMT.h)
+endif()
+
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
-  set(MSS_SRCS
-    ${MSS_SRCS}
-    renderSprings.cpp
-  )
-  set(MSS_HDRS
-    ${MSS_HDRS}
-    renderSprings.h
-  )
+  list(APPEND massspringsystem_srcs renderSprings.cpp)
+  list(APPEND massspringsystem_hdrs renderSprings.h)
 endif()
 
 vega_add_library(massSpringSystem
   SOURCES
-    ${MSS_SRCS}
+    ${massspringsystem_srcs}
   PUBLIC_HEADERS
-    ${MSS_HDRS}
+    ${massspringsystem_hdrs}
 )
 target_link_libraries(massSpringSystem
   PUBLIC
@@ -43,6 +42,7 @@ target_link_libraries(massSpringSystem
     sparseMatrix
   INTERFACE
     minivector
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   target_link_libraries(massSpringSystem

@@ -158,10 +158,10 @@ int MatrixPCA(ThresholdingSpecification * thresholdingSpecification,
   }
 
   #ifdef __APPLE__
-    #define DGESVD dgesvd_
+//     #define DGESVD dgesvd_
     #define INTEGER __CLPK_integer
   #else
-    #define DGESVD dgesvd
+//     #define DGESVD dgesvd
     #define INTEGER int
   #endif
 

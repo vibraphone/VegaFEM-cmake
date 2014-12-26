@@ -44,4 +44,5 @@ target_link_libraries(objMeshGPUDeformer
     lighting
     ${OPENGL_LIBRARIES}
     ${CG_LIBRARY}
+    ${CG_GL_LIBRARY}
 )

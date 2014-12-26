@@ -1,11 +1,21 @@
+set(corotationallinearfem_srcs 
+    corotationalLinearFEM.cpp)
+    
+set(corotationallinearfem_hdrs 
+    corotationalLinearFEM.h)
+    
+if(VegaFEM_ENABLE_PTHREADS_SUPPORT)
+  list(APPEND corotationallinearfem_hdrs corotationalLinearFEMMT.h)
+  list(APPEND corotationallinearfem_srcs corotationalLinearFEMMT.cpp)
+endif()
+
 vega_add_library(corotationalLinearFEM
   SOURCES
-    corotationalLinearFEM.cpp
-    corotationalLinearFEMMT.cpp
+    ${corotationallinearfem_srcs}
   PUBLIC_HEADERS
-    corotationalLinearFEM.h
-    corotationalLinearFEMMT.h
+    ${corotationallinearfem_hdrs}
 )
+
 target_link_libraries(corotationalLinearFEM
   PUBLIC
     polarDecomposition
@@ -13,4 +23,5 @@ target_link_libraries(corotationalLinearFEM
     sparseMatrix
   INTERFACE
     minivector
+    ${CMAKE_THREAD_LIBS_INIT}
 )

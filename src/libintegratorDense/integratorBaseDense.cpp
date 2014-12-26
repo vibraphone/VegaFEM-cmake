@@ -139,11 +139,11 @@ int IntegratorBaseDense::SetState(double * q_, double * qvel_)
   // solve M * x = qaccel
   // call dposv ( uplo, n, nrhs, a, lda, b, ldb, info)
 
-  #ifdef __APPLE__
-    #define DPOSV dposv_  
-  #else
-    #define DPOSV dposv
-  #endif
+//   #ifdef __APPLE__
+//     #define DPOSV dposv_  
+//   #else
+//     #define DPOSV dposv
+//   #endif
 
   memcpy(tangentStiffnessMatrix, massMatrix, sizeof(double) * r2); // must copy mass matrix to another buffer since DPOSV overwrites the system matrix
   char uplo = 'U';

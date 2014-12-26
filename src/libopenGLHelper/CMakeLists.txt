@@ -1,4 +1,4 @@
-vega_add_library(openglhelper
+vega_add_library(openGLHelper
   SOURCES
     openGLHelper.cpp
     printBitmap.cpp
@@ -8,7 +8,7 @@ vega_add_library(openglhelper
     printBitmap.h
     saveScreenShot.h
 )
-target_link_libraries(openglhelper
+target_link_libraries(openGLHelper
   PUBLIC
     matrixIO
     imageIO

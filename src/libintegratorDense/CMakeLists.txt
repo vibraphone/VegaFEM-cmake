@@ -1,4 +1,4 @@
-vega_add_library(integratordense
+vega_add_library(integratorDense
   SOURCES
     centralDifferencesDense.cpp
     implicitBackwardEulerDense.cpp
@@ -11,10 +11,13 @@ vega_add_library(integratordense
     implicitNewmarkDense.h
     integratorBaseDense.h
 )
-target_link_libraries(integratordense
+target_link_libraries(integratorDense
   PUBLIC
     matrix
     integrator
     performanceCounter
     reducedForceModel
+    ${BLAS}
+    ${CBLAS_LIBRARY}
+    ${LAPACK_LIBRARIES}
 )

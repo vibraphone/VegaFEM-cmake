@@ -33,5 +33,7 @@ vega_add_library(matrix
 target_link_libraries(matrix
   PUBLIC
     matrixIO
+    ${BLAS}
+    ${CBLAS_LIBRARY}
     ${LAPACK_LIBRARIES}
 )

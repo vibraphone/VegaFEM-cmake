@@ -31,6 +31,7 @@ option(VegaFEM_BUILD_MODEL_REDUCTION "Should model-reduction techniques be inclu
 option(VegaFEM_ENABLE_ExpoKit_SUPPORT "Should matrix classes use ExpoKit for exponentiation?" OFF)
 option(VegaFEM_ENABLE_OpenMP_SUPPORT "Should OpenMP be used?" OFF)
 option(VegaFEM_ENABLE_OpenGL_SUPPORT "Should modules that require OpenGL be enabled?" ON)
+option(VegaFEM_ENABLE_PTHREADS_SUPPORT "Use multithreading (pthread)" ON)
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   # Only add Cg support if OpenGL is turned on. This may change in the future.
   option(VegaFEM_ENABLE_Cg_SUPPORT "Should modules that require Cg be enabled?" OFF)
@@ -62,6 +63,8 @@ set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 # directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# build utilities
+option(BUILD_UTILITIES "Build utility applications." ON)
 
 # Set directory variables
 if(NOT BIN_DIR)
@@ -138,27 +141,11 @@ endif(NOT CMAKE_CONFIGURATION_TYPES)
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   find_package(OpenGL)
   find_package(GLUT)
+  find_package(GLEW)
+  find_package(GLUI)
   if (GLUT_FOUND)
     mark_as_advanced(GLUT_cocoa_LIBRARY)
   endif()
-  find_package(GLUI)
-endif()
-
-if(VegaFEM_ENABLE_OpenMP_SUPPORT)
-  find_package(OpenMP REQUIRED)
-  mark_as_advanced(OpenMP_C_FLAGS OpenMP_CXX_FLAGS)
-  #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  #add_definitions(-DUSE_OPENMP)
-endif()
-
-if (VegaFEM_BUILD_MODEL_REDUCTION)
-  if (NOT APPLE)
-    # Need a vendor that provides headers.
-    set(BLA_VENDOR "ATLAS")
-  endif()
-  find_package(BLAS REQUIRED)
-  find_package(LAPACK REQUIRED)
   if (VegaFEM_ENABLE_Cg_SUPPORT)
     find_package(Cg REQUIRED)
     mark_as_advanced(
@@ -170,9 +157,42 @@ if (VegaFEM_BUILD_MODEL_REDUCTION)
   endif()
 endif()
 
+if(VegaFEM_ENABLE_OpenMP_SUPPORT)
+  find_package(OpenMP REQUIRED)
+  mark_as_advanced(OpenMP_C_FLAGS OpenMP_CXX_FLAGS)
+  #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  #add_definitions(-DUSE_OPENMP)
+endif()
+
+#FindThreads
+if(WIN32)
+  set(THREADS_USE_PTHREADS_WIN32 1)
+endif(WIN32)
+if(VegaFEM_ENABLE_PTHREADS_SUPPORT)
+  #FindPThreads
+  find_package(PThreads REQUIRED)
+  if(THREADS_FOUND)
+    include_directories(${THREADS_PTHREADS_INCLUDE_DIR})
+  endif()
+endif()
+
+if (VegaFEM_BUILD_MODEL_REDUCTION)
+  find_package(MKL)
+  if(MKL_FOUND)
+    set(BLA_VENDOR "Intel mkl")
+    include_directories(${INTEL_MKL_INCLUDE_DIR})
+  else()
+    find_package(LAPACKE REQUIRED) # ALso searches for cblas
+    include_directories(${LAPACKE_INCLUDE_DIR})
+    include_directories(${CBLAS_INCLUDE_DIR})
+  endif() 
+  find_package(LAPACK)
+endif()
+
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   if(NOT GLUI_INCLUDE_DIR OR NOT GLUI_LIBRARY)
-    add_subdirectory(thirdparty/glui/2.35/src)
+    add_subdirectory(thirdparty/glui/2.36/src)
     set(GLUI_LIBRARY glui)
     set(GLUI_INCLUDE_DIR) # Empty this as library will export its own includes.
   endif()
@@ -197,24 +217,24 @@ set(VegaFEM_Modules
   corotationalLinearFEM
   massSpringSystem
   stvk
+  quaternion
   isotropicHyperelasticFEM
   elasticForceModel
   loadList
   vega-getopts
+  clothBW
+  hashTable
+  rigidBodyDynamics
 )
 if (VegaFEM_BUILD_MODEL_REDUCTION)
   set(VegaFEM_Modules
     ${VegaFEM_Modules}
-	  clothBW
-	  hashTable
-	  integratorDense
-	  matrix
-	  modalMatrix
-	  quaternion
-	  reducedForceModel
-	  reducedStvk
-	  reducedElasticForceModel
-	  rigidBodyDynamics
+    integratorDense
+    matrix
+    modalMatrix
+    reducedElasticForceModel
+    reducedForceModel
+    reducedStvk
   )
 endif()
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
@@ -224,20 +244,20 @@ if (VegaFEM_ENABLE_OpenGL_SUPPORT)
     lighting
     sceneObject
   )
+  if (VegaFEM_ENABLE_Cg_SUPPORT)
+    set(VegaFEM_Modules
+      ${VegaFEM_Modules}
+      objMeshGPUDeformer
+    )
+  endif()
   if (VegaFEM_BUILD_MODEL_REDUCTION)
     set(VegaFEM_Modules
       ${VegaFEM_Modules}
-	    glslPhong
-	    openGLHelper
-	    sceneObjectReduced
-	    renderVolumetricMesh
+      glslPhong
+      openGLHelper
+      sceneObjectReduced
+      renderVolumetricMesh
     )
-    if (VegaFEM_ENABLE_Cg_SUPPORT)
-      set(VegaFEM_Modules
-        ${VegaFEM_Modules}
-	      objMeshGPUDeformer
-      )
-    endif()
   endif()
 endif()
 
@@ -262,6 +282,7 @@ install(EXPORT VegaFEMTargets
   DESTINATION
     ${ConfigPackageLocation}
 )
+
 install(
   FILES
     CMake/VegaFEMConfig.cmake
@@ -271,11 +292,12 @@ install(
   COMPONENT
     Devel
 )
-add_subdirectory(include)
 
-# Local Variables:
-# tab-width: 8
-# mode: cmake
-# indent-tabs-mode: t
-# End:
-# ex: shiftwidth=2 tabstop=8
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/include/vega/VegaFEMConfig.h
+  DESTINATION include/vega
+  COMPONENT Development
+)
+
+add_subdirectory(include)

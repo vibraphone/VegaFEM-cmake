@@ -28,7 +28,7 @@
 
 #include "lapack-headers.h"
 #include "matrixIO.h"
-#if defined(WIN32) || defined(linux)
+#if (defined(WIN32) || defined(linux)) && defined(__INTEL_MKL__)
   #include "mkl_service.h"
 #endif
 #include "matrixMacros.h"
@@ -810,7 +810,7 @@ void StVKReducedInternalForces::Evaluate(double * q, double * fq)
 
   if (useSingleThread)
   {
-    #if defined(WIN32) || defined(linux)
+    #if (defined(WIN32) || defined(linux)) && defined(__INTEL_MKL__)
       mkl_max_threads = mkl_get_max_threads();
       mkl_dynamic = mkl_get_dynamic();
       mkl_set_num_threads(1);
@@ -881,7 +881,7 @@ void StVKReducedInternalForces::Evaluate(double * q, double * fq)
 
   if (useSingleThread)
   {
-    #if defined(WIN32) || defined(linux)
+    #if (defined(WIN32) || defined(linux)) && defined(__INTEL_MKL__)
       mkl_set_num_threads(mkl_max_threads);
       mkl_set_dynamic(mkl_dynamic);
     #elif defined(__APPLE__)
