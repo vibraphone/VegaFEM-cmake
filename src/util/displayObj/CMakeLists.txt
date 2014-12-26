@@ -1,8 +1,13 @@
 
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
+#     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libopenGLHelper
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libperformanceCounter
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libglslPhong
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libobjMesh
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libvega-getopts
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libmatrixIO
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libloadList
 )
 
 add_executable(displayObj displayObj.cpp)

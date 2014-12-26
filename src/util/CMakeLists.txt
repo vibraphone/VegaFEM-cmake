@@ -1,7 +1,9 @@
 
 if(VegaFEM_BUILD_MODEL_REDUCTION)
   add_subdirectory(largeModalDeformationFactory)
-  add_subdirectory(reducedDynamicSolver-rt)
+  if(VegaFEM_ENABLE_Cg_SUPPORT)
+    add_subdirectory(reducedDynamicSolver-rt)
+  endif()
 endif(VegaFEM_BUILD_MODEL_REDUCTION)
 add_subdirectory(displayObj)
 add_subdirectory(interactiveDeformableSimulator)

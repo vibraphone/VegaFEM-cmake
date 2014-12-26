@@ -1,6 +1,7 @@
-language: cpp
+language: cpp fortran
 compiler:
   #- gcc # Avoid gcc because it exhausts travis VM memory
+  - gfortran
   - clang
 
 before_install:
@@ -10,13 +11,13 @@ before_install:
  #- sudo add-apt-repository --yes ppa:kubuntu-ppa/backports
    # Make sure package index is up to date:
  - sudo apt-get -qq update
-
+ - sudo apt-get install gfortran
 install:
    # Install build tools:
  - sudo apt-get install -yqq git ninja-build ccache
    # Install library dependencies:
- - sudo apt-get install -yqq libatlas-dev libblas-dev liblapack-dev liblapacke-dev
- - sudo apt-get install -yqq freeglut3-dev libglui-dev libxmu-dev
+ - sudo apt-get install -yqq libatlas-dev libatlas-base-dev 
+ - sudo apt-get install -yqq freeglut3-dev libglui-dev libglew-dev libxmu-dev
    # Set user/email so any tests we might have for developers pass
  - git config --global user.email "travis@travis-ci.org"
  - git config --global user.name "Travis CI"
@@ -26,9 +27,17 @@ install:
  - wget -q "http://www.cmake.org/files/v3.1/cmake-3.1.0-Linux-x86_64.tar.gz"
  - tar xzf "cmake-3.1.0-Linux-x86_64.tar.gz"
  - mv cmake-3.1.0-Linux-x86_64 install
+ - cd ~/VegaFEM-deps
+ - wget -q "http://www.netlib.org/lapack/lapack-3.5.0.tgz"
+ - tar xzf "lapack-3.5.0.tgz"
+ - mkdir -p ~/VegaFEM-deps/lapack-build
+ - cd ~/VegaFEM-deps/lapack-build
+ - ~/VegaFEM-deps/cmake/install/bin/cmake -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DBUILD_SHARED_LIBS:BOOL=ON -DBUILD_STATIC_LIBS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DLAPACKE:BOOL=ON -DUSE_OPTIMIZED_BLAS:BOOL=ON -DUSE_OPTIMIZED_LAPACK:BOOL=ON ../lapack-3.5.0
+ - make
+ - sudo make install
 
 script:
  - mkdir ~/VegaFEM-build && cd ~/VegaFEM-build
- - ~/VegaFEM-deps/cmake/install/bin/cmake -G Ninja "-DSITE:STRING=travis-ci.org" "-DBUILDNAME:STRING=${TRAVIS_OS_NAME}-${CC}-Job.${TRAVIS_JOB_NUMBER}-SMTK" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DVegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF -DVegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=ON -DVegaFEM_ENABLE_OpenMP_SUPPORT:BOOL=OFF "-DCMAKE_INSTALL_PREFIX=${HOME}/VegaFEM-install" ${TRAVIS_BUILD_DIR}
+ - ~/VegaFEM-deps/cmake/install/bin/cmake -G Ninja "-DSITE:STRING=travis-ci.org" "-DBUILDNAME:STRING=${TRAVIS_OS_NAME}-${CC}-Job.${TRAVIS_JOB_NUMBER}-SMTK" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DVegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=ON "-DCMAKE_INSTALL_PREFIX=${HOME}/VegaFEM-install" ${TRAVIS_BUILD_DIR}
  - ninja
  - ninja install

@@ -28,10 +28,13 @@ include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
 option(VegaFEM_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
-option(VegaFEM_ENABLE_ExpoKit_SUPPORT "Should matrix classes use ExpoKit for exponentiation?" OFF)
-option(VegaFEM_ENABLE_OpenMP_SUPPORT "Should OpenMP be used?" OFF)
+option(VegaFEM_ENABLE_ExpoKit_SUPPORT "Should matrix classes use ExpoKit for exponentiation?" OFF) 
+# TODO: define USE_EXPOKIT if enabled
 option(VegaFEM_ENABLE_OpenGL_SUPPORT "Should modules that require OpenGL be enabled?" ON)
 option(VegaFEM_ENABLE_PTHREADS_SUPPORT "Use multithreading (pthread)" ON)
+# TODO: add option for arpack++ and define USEARPACKPLUSPLUS
+# TODO: add option for spooles and define SPOOLES_SOLVER_IS_AVAILABLE
+
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   # Only add Cg support if OpenGL is turned on. This may change in the future.
   option(VegaFEM_ENABLE_Cg_SUPPORT "Should modules that require Cg be enabled?" OFF)
@@ -157,20 +160,11 @@ if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   endif()
 endif()
 
-if(VegaFEM_ENABLE_OpenMP_SUPPORT)
-  find_package(OpenMP REQUIRED)
-  mark_as_advanced(OpenMP_C_FLAGS OpenMP_CXX_FLAGS)
-  #set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  #add_definitions(-DUSE_OPENMP)
-endif()
-
-#FindThreads
-if(WIN32)
-  set(THREADS_USE_PTHREADS_WIN32 1)
-endif(WIN32)
 if(VegaFEM_ENABLE_PTHREADS_SUPPORT)
-  #FindPThreads
+  #FindThreads
+  if(WIN32)
+    set(THREADS_USE_PTHREADS_WIN32 1)
+  endif(WIN32)
   find_package(PThreads REQUIRED)
   if(THREADS_FOUND)
     include_directories(${THREADS_PTHREADS_INCLUDE_DIR})
@@ -182,12 +176,13 @@ if (VegaFEM_BUILD_MODEL_REDUCTION)
   if(MKL_FOUND)
     set(BLA_VENDOR "Intel mkl")
     include_directories(${INTEL_MKL_INCLUDE_DIR})
+    # TODO: set option for the paradiso solvers and define PARDISO_SOLVER_IS_AVAILABLE
   else()
-    find_package(LAPACKE REQUIRED) # ALso searches for cblas
+    find_package(LAPACKE REQUIRED) # Also searches for cblas
     include_directories(${LAPACKE_INCLUDE_DIR})
     include_directories(${CBLAS_INCLUDE_DIR})
   endif() 
-  find_package(LAPACK)
+  find_package(LAPACK) # Also searches for blas
 endif()
 
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
@@ -243,6 +238,7 @@ if (VegaFEM_ENABLE_OpenGL_SUPPORT)
     camera
     lighting
     sceneObject
+    glslPhong
   )
   if (VegaFEM_ENABLE_Cg_SUPPORT)
     set(VegaFEM_Modules
@@ -253,7 +249,6 @@ if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   if (VegaFEM_BUILD_MODEL_REDUCTION)
     set(VegaFEM_Modules
       ${VegaFEM_Modules}
-      glslPhong
       openGLHelper
       sceneObjectReduced
       renderVolumetricMesh
@@ -291,13 +286,6 @@ install(
     ${ConfigPackageLocation}
   COMPONENT
     Devel
-)
-
-install(
-  FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/include/vega/VegaFEMConfig.h
-  DESTINATION include/vega
-  COMPONENT Development
 )
 
 add_subdirectory(include)

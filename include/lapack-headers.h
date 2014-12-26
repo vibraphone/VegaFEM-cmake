@@ -8,24 +8,24 @@
 #else // Requires Lapacke & cblas
   #include<lapacke.h>
   #include<cblas.h>
+  #define DGEEV LAPACK_dgeev
+  #define DGELSY LAPACK_dgelsy
   #define DGESVD LAPACK_dgesvd
+  #define DGESVD LAPACK_dgesvd
+  #define DGESV LAPACK_dgesv
   #define DGETRF LAPACK_dgetrf
   #define DGETRI LAPACK_dgetri
+  #define DGETRS LAPACK_dgetrs
+  #define DPOSV LAPACK_dposv
+  #define DSYEV LAPACK_dsyev
+  #define DSYGV LAPACK_dsygv
+  #define DSYSV LAPACK_dsysv
+  #define SGEEV LAPACK_sgeev
+  #define SGELSY LAPACK_sgelsy
+  #define SGESVD LAPACK_sgesvd
+  #define SGESV LAPACK_sgesv
   #define SGETRF LAPACK_sgetrf
   #define SGETRI LAPACK_sgetri
-  #define DGESVD LAPACK_dgesvd
-  #define SGESVD LAPACK_sgesvd
-  #define DGELSY LAPACK_dgelsy
-  #define SGELSY LAPACK_sgelsy
-  #define DGESV LAPACK_dgesv
-  #define SGESV LAPACK_sgesv
-  #define DSYEV LAPACK_dsyev
   #define SSYEV LAPACK_ssyev
-  #define DSYGV LAPACK_dsygv
   #define SSYGV LAPACK_ssygv
-  #define SGEEV LAPACK_sgeev
-  #define DGEEV LAPACK_dgeev
-  #define DGETRS LAPACK_dgetrs
-  #define DSYSV LAPACK_dsysv
-  #define DPOSV LAPACK_dposv
 #endif

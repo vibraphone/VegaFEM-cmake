@@ -9,12 +9,23 @@ find_path(CBLAS_INCLUDE_DIR
   cblas.h
   /usr/include
   /usr/local/include
+  PATH_SUFFIXES
+  atlas
+  atlas-base
+  libblas
   )
 
-find_library( CBLAS_LIBRARY
+find_library(CBLAS_LIBRARY
   NAMES cblas
   PATHS
   /usr/lib64
+  /usr/lib
+  /usr/local/lib64
+  /usr/local/lib
+  PATH_SUFFIXES
+  atlas
+  atlas-base
+  libblas
   )
 
 # find_library( BLAS_LIBRARY
@@ -27,7 +38,7 @@ find_library( CBLAS_LIBRARY
 find_library(LAPACKE_LIBRARY
   NAMES lapacke
   PATHS
-  /usr/lib64
+  /usr/lib64  
   )
 
 set(LAPACKE_LIBRARIES "${LAPACKE_LIBRARY}")
