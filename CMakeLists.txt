@@ -172,16 +172,18 @@ if(VegaFEM_ENABLE_PTHREADS_SUPPORT)
 endif()
 
 if (VegaFEM_BUILD_MODEL_REDUCTION)
-  find_package(MKL)
-  if(MKL_FOUND)
-    set(BLA_VENDOR "Intel mkl")
-    include_directories(${INTEL_MKL_INCLUDE_DIR})
-    # TODO: set option for the paradiso solvers and define PARDISO_SOLVER_IS_AVAILABLE
-  else()
-    find_package(LAPACKE REQUIRED) # Also searches for cblas
-    include_directories(${LAPACKE_INCLUDE_DIR})
-    include_directories(${CBLAS_INCLUDE_DIR})
-  endif() 
+  if (NOT APPLE)
+    find_package(MKL)
+    if(MKL_FOUND)
+      set(BLA_VENDOR "Intel mkl")
+      include_directories(${INTEL_MKL_INCLUDE_DIR})
+      # TODO: set option for the paradiso solvers and define PARDISO_SOLVER_IS_AVAILABLE
+    else()
+      find_package(LAPACKE REQUIRED) # Also searches for cblas
+      include_directories(${LAPACKE_INCLUDE_DIR})
+      include_directories(${CBLAS_INCLUDE_DIR})
+    endif() 
+  endif()
   find_package(LAPACK) # Also searches for blas
 endif()
 
