@@ -246,9 +246,10 @@ VolumetricMesh::VolumetricMesh(char * filename, int numElementVertices_, int ver
       for (int k=0; k<numElementVertices; k++)
         v[k] -= oneIndexedVertices;
 
-      elements[countNumElements] = (int*) malloc (sizeof(int) * numElementVertices);
+      elements[countNumElements] = (int*) malloc (sizeof(int) * (numElementVertices + 1));
       for(int j=0; j<numElementVertices; j++)
         elements[countNumElements][j] = v[j];
+      elements[countNumElements][numElementVertices] = 1; // element is active, not deleted.
 
       countNumElements++;
     }
@@ -600,13 +601,14 @@ VolumetricMesh::VolumetricMesh(int numVertices_, double * vertices_,
   for(int i=0; i<numElements; i++)
   {
     set->insert(i);
-    elements[i] = (int*) malloc (sizeof(int) * numElementVertices);
+    elements[i] = (int*) malloc (sizeof(int) * (numElementVertices + 1));
     elementMaterial[i] = 0;
     for(int j=0; j<numElementVertices; j++)
     {
       v[j] = elements_[numElementVertices * i + j];
       elements[i][j] = v[j];
     }
+    elements[i][numElementVertices] = 1; // element is active, not dead
   }
   free(v);
 
@@ -675,8 +677,8 @@ VolumetricMesh::VolumetricMesh(const VolumetricMesh & volumetricMesh)
   elements = (int**) malloc (sizeof(int*) * numElements);
   for(int i=0; i<numElements; i++)
   {
-    elements[i] = (int*) malloc (sizeof(int) * numElementVertices);
-    for(int j=0; j<numElementVertices; j++)
+    elements[i] = (int*) malloc (sizeof(int) * (numElementVertices + 1));
+    for(int j=0; j<=numElementVertices; j++)
       elements[i][j] = (volumetricMesh.elements)[i][j];
   }
 
@@ -725,27 +727,27 @@ VolumetricMesh::~VolumetricMesh()
 }
 
 int VolumetricMesh::save(char * filename, elementType elementType_) const // saves the mesh to a .veg file
-{       
+{
   FILE * fout = fopen(filename, "w");
   if (!fout)
-  {       
+  {
     printf("Error: could not write to %s.\n",filename);
     return 1;
-  }         
+  }
 
   fprintf(fout, "# Vega mesh file.\n");
   fprintf(fout, "# %d vertices, %d elements\n", numVertices, numElements);
   fprintf(fout, "\n");
-          
+
   // write vertices
   fprintf(fout,"*VERTICES\n");
   fprintf(fout,"%d 3 0 0\n", numVertices);
-          
-  for(int i=0; i < numVertices; i++)  
+
+  for(int i=0; i < numVertices; i++)
   {
     Vec3d v = *getVertex(i);
     fprintf(fout,"%d %.15G %.15G %.15G\n", i+1, v[0], v[1], v[2]);
-  }   
+  }
   fprintf(fout, "\n");
 
   // write elements
@@ -761,16 +763,16 @@ int VolumetricMesh::save(char * filename, elementType elementType_) const // sav
   fprintf(fout,"%d %d 0\n", numElements, numElementVertices);
 
   for(int el=0; el < numElements; el++)
-  {   
-    fprintf(fout,"%d ", el+1);
+  {
+    fprintf(fout,"%d ", this->elements[el][numElementVertices] ? el+1 : -1);
     for(int j=0; j < numElementVertices; j++)
-    {   
+    {
       fprintf(fout, "%d", getVertexIndex(el, j) + 1);
       if (j != numElementVertices - 1)
         fprintf(fout," ");
-    } 
+    }
     fprintf(fout,"\n");
-  }     
+  }
   fprintf(fout, "\n");
 
   // write materials
@@ -1775,7 +1777,7 @@ int VolumetricMesh::exportToEle(char * baseFilename, int includeRegions) const
 
   for(int el=0; el < numElements; el++)
   {   
-    fprintf(fout,"%d ",el+1);
+    fprintf(fout,"%d ", this->elements[el][numElementVertices] ? el+1 : -1);
     for(int j=0; j < numElementVertices; j++)
     {   
       fprintf(fout,"%d", getVertexIndex(el,j)+1);
