@@ -204,6 +204,9 @@ void IsotropicHyperelasticFEM::GetStiffnessMatrixTopology(SparseMatrix ** tangen
   int numElements = tetMesh->getNumElements();
   for (int el=0; el < numElements; el++)
   {
+    if (tetMesh->getElementStatus(el) == VolumetricMesh::DEAD)
+      continue;
+
     for(int vertex=0; vertex<numElementVertices; vertex++)
       vertices[vertex] = tetMesh->getVertexIndex(el, vertex);
 
@@ -410,6 +413,9 @@ int IsotropicHyperelasticFEM::GetEnergyAndForceAndTangentStiffnessMatrixHelperWo
   int exitCode = 0;
   for (int el=startEl; el<endEl; el++)
   {
+    if (tetMesh->getElementStatus(el) == VolumetricMesh::DEAD)
+      continue;
+
     /*
       Compute the deformation gradient F.
       F = Ds * inv(Dm), where Ds is a 3x3 matrix where

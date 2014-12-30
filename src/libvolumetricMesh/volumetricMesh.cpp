@@ -894,6 +894,18 @@ VolumetricMesh::elementType VolumetricMesh::getElementType(char * filename)
   return elementType_;
 }
 
+/// Return whether or not the \a element should be included in mass and stiffness matrices.
+VolumetricMesh::ElementStatus VolumetricMesh::getElementStatus(int element) const
+{
+  return this->elements[element][numElementVertices] ? ACTIVE : DEAD;
+}
+
+/// Set whether or not an \a element should be included in mass and stiffness matrices.
+void VolumetricMesh::setElementStatus(int element, ElementStatus stat)
+{
+  this->elements[element][numElementVertices] = stat;
+}
+
 double VolumetricMesh::getVolume() const
 {
   double vol = 0.0;

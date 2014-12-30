@@ -96,9 +96,16 @@ public:
   inline int getVertexIndex(int element, int vertex) const { return elements[element][vertex]; }
   inline Vec3d ** getVertices() const { return vertices;} // advanced, internal datastructure
   inline int getNumElements() const { return numElements; }
-  inline int getNumElementVertices() const { return numElementVertices; } 
+  inline int getNumElementVertices() const { return numElementVertices; }
+  enum ElementStatus
+    {
+    DEAD   = 0, //!< The corresponding element should not be included in calculations.
+    ACTIVE = 1  //!< The corresponding element should be included in calculations.
+    };
+  ElementStatus getElementStatus(int element) const;
+  void setElementStatus(int element, ElementStatus stat);
 
-  // === materials access === 
+  // === materials access ===
 
   inline int getNumMaterials() const { return numMaterials; }
   inline Material * getMaterial(int i) const { return materials[i]; }
