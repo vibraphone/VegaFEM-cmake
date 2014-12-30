@@ -1,0 +1,33 @@
+clone_depth: 16
+
+cache:
+ - cmake-inst
+
+environment:
+  matrix:
+    - GENERATOR: "Visual Studio 10 2010"
+      VS_VERSION: "10.0"
+    - GENERATOR: "Ninja"
+      VS_VERSION: "10.0"
+
+platform:
+ - x86
+
+configuration:
+ - Release
+
+install:
+ - cinst: ninja cmake
+
+build_script:
+ - cmd: set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
+ - cmd: call "C:/Program Files (x86)/Microsoft Visual Studio %VS_VERSION%/Common7/Tools/vsvars32.bat"
+ - cmd: cmake --version
+ - cmd: mkdir build
+ - cmd: cd build
+ - cmd: cmake .. -Wdev --warn-uninitialized -G"%GENERATOR%" -D"VegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF" -D"VegaFEM_ENABLE_PTHREADS_SUPPORT:BOOL=OFF"
+ - cmd: cmake --build .
+
+test_script:
+# - cmd: ctest -C Debug --output-on-failure
+ - cmd: cd ..
