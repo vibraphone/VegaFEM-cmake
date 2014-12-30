@@ -42,7 +42,10 @@ Graph * GenerateMeshGraph::Generate(VolumetricMesh * volumetricMesh)
   int * edgeBuffer = (int*) malloc (sizeof(int) * 2 * numElementEdges);
   for(int el=0; el<volumetricMesh->getNumElements(); el++)
   {
-    volumetricMesh->getElementEdges(el, edgeBuffer);  
+    if (volumetricMesh->getElementStatus(el) == VolumetricMesh::DEAD)
+      continue; // Skip dead elements.
+
+    volumetricMesh->getElementEdges(el, edgeBuffer);
 
     for(int j=0; j<numElementEdges; j++)
       edgeSet.insert(SORTED(edgeBuffer[2*j+0], edgeBuffer[2*j+1]));
