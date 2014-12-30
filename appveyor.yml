@@ -9,8 +9,8 @@ cache:
 
 environment:
   matrix:
-    - GENERATOR: "Visual Studio 10 2010"
-      VS_VERSION: "10.0"
+    #- GENERATOR: "Visual Studio 10 2010"
+    #  VS_VERSION: "10.0"
     - GENERATOR: "Ninja"
       VS_VERSION: "10.0"
 
@@ -25,12 +25,16 @@ install:
  - ps: cinst cmake
 
 build_script:
- - cmd: set PATH=C:\Program Files (x86)\CMake\bin;%PATH%
+ - cmd: set PATH=C:/ProgramData/chocolatey/bin;C:/tools/ninja;%PATH%
  - cmd: call "C:/Program Files (x86)/Microsoft Visual Studio %VS_VERSION%/Common7/Tools/vsvars32.bat"
+   # Get a list of generators and the CMake version
  - cmd: cmake --version
+ - cmd: cmake --help
+   # Create a build directory inside the source tree
  - cmd: mkdir build
  - cmd: cd build
- - cmd: cmake .. -Wdev --warn-uninitialized -G"%GENERATOR%" -D"VegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF" -D"VegaFEM_ENABLE_PTHREADS_SUPPORT:BOOL=OFF"
+   # Run CMake on the source and build
+ - cmd: cmake .. -Wdev --warn-uninitialized -G "%GENERATOR%" -D"VegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF" -D"VegaFEM_ENABLE_PTHREADS_SUPPORT:BOOL=OFF" -D"VegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=OFF"
  - cmd: cmake --build .
 
 test_script:
