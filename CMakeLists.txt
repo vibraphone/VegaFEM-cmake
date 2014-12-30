@@ -12,6 +12,10 @@ set(VegaFEM_VERSION 2.0)
 cmake_minimum_required(VERSION 2.8)
 if(COMMAND CMAKE_POLICY)
   cmake_policy(SET CMP0003 NEW)
+  if (POLICY CMP0022)
+    # Use INTERFACE_LINK_LIBRARIES when available.
+    cmake_policy(SET CMP0022 NEW)
+  endif()
   if (POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
   endif()
@@ -27,8 +31,9 @@ include(CMakePackageConfigHelpers)
 include(VegaFEMMacros)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INCLUDE_CURRENT_DIR_IN_INTERFACE OFF)
+option(VegaFEM_BUILD_UTILITIES "Build utility applications in addition to libraries." ON)
 option(VegaFEM_BUILD_MODEL_REDUCTION "Should model-reduction techniques be included?" ON)
-option(VegaFEM_ENABLE_ExpoKit_SUPPORT "Should matrix classes use ExpoKit for exponentiation?" OFF) 
+option(VegaFEM_ENABLE_ExpoKit_SUPPORT "Should matrix classes use ExpoKit for exponentiation?" OFF)
 # TODO: define USE_EXPOKIT if enabled
 option(VegaFEM_ENABLE_OpenGL_SUPPORT "Should modules that require OpenGL be enabled?" ON)
 option(VegaFEM_ENABLE_PTHREADS_SUPPORT "Use multithreading (pthread)" ON)
@@ -65,9 +70,6 @@ set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 # add the automatically determined parts of the RPATH which point to
 # directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# build utilities
-option(BUILD_UTILITIES "Build utility applications." ON)
 
 # Set directory variables
 if(NOT BIN_DIR)
@@ -182,7 +184,7 @@ if (VegaFEM_BUILD_MODEL_REDUCTION)
       find_package(LAPACKE REQUIRED) # Also searches for cblas
       include_directories(${LAPACKE_INCLUDE_DIR})
       include_directories(${CBLAS_INCLUDE_DIR})
-    endif() 
+    endif()
   endif()
   find_package(LAPACK) # Also searches for blas
 endif()

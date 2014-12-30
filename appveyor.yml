@@ -34,7 +34,7 @@ build_script:
  - cmd: mkdir build
  - cmd: cd build
    # Run CMake on the source and build
- - cmd: cmake .. -Wdev --warn-uninitialized -G "%GENERATOR%" -D"VegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF" -D"VegaFEM_ENABLE_PTHREADS_SUPPORT:BOOL=OFF" -D"VegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=OFF"
+ - cmd: cmake .. -Wdev --warn-uninitialized -G "%GENERATOR%" -D"VegaFEM_BUILD_MODEL_REDUCTION:BOOL=OFF" -D"VegaFEM_ENABLE_PTHREADS_SUPPORT:BOOL=OFF" -D"VegaFEM_ENABLE_OpenGL_SUPPORT:BOOL=OFF" -D"VegaFEM_BUILD_UTILITIES:BOOL=ON"
  - cmd: cmake --build .
 
 test_script:
