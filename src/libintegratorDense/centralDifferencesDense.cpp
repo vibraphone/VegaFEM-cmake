@@ -38,8 +38,8 @@
 #include "IPIVC.h"
 
 #ifdef __APPLE__
-//   #define DGETRF dgetrf_
-//   #define DGETRS dgetrs_
+   #define DGETRF dgetrf_
+   #define DGETRS dgetrs_
 #else
 //   #define DGETRF dgetrf
 //   #define DGETRS dgetrs

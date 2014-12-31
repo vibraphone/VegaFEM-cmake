@@ -3,7 +3,6 @@ set(massspringsystem_srcs
   massSpringSystemFromObjMesh.cpp
   massSpringSystemFromTetMeshConfigFile.cpp
   massSpringSystemFromTetMesh.cpp
-  massSpringSystemMT.cpp
   massSpringSystem.cpp
   massSpringSystemFromCubicMesh.cpp
   massSpringSystemFromCubicMeshConfigFile.cpp
