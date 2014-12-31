@@ -23,12 +23,12 @@ in academic research and in commercial applications.
 Vega implements several widely used methods for simulation of large
 deformations of 3D solid deformable objects:
 
-  * co-rotational linear FEM elasticity [MG04]_; it can also compute the exact
-    tangent stiffness matrix [Bar12]_ (similar to [CPSS10]_),
-  * linear FEM elasticity [Sha90]_,
-  * invertible isotropic nonlinear FEM models [ITF04]_, [TSIF05]_,
-  * Saint-Venant Kirchhoff FEM deformable models (see [Bar07]_), and
-  * mass-spring systems.
+* co-rotational linear FEM elasticity [MG04]_; it can also compute the exact
+  tangent stiffness matrix [Bar12]_ (similar to [CPSS10]_),
+* linear FEM elasticity [Sha90]_,
+* invertible isotropic nonlinear FEM models [ITF04]_, [TSIF05]_,
+* Saint-Venant Kirchhoff FEM deformable models (see [Bar07]_), and
+* mass-spring systems.
 
 For any 3D tetrahedral or cubic mesh, Vega can compute both internal elastic
 forces and their gradients (tangent stiffness matrix), in any deformed
