@@ -38,11 +38,11 @@
 #include "IPIVC.h"
 
 #ifdef __APPLE__
-  #define DGETRF dgetrf_
-  #define DGETRS dgetrs_
+   #define DGETRF dgetrf_
+   #define DGETRS dgetrs_
 #else
-  #define DGETRF dgetrf
-  #define DGETRS dgetrs
+//   #define DGETRF dgetrf
+//   #define DGETRS dgetrs
 #endif
 
 CentralDifferencesDense::CentralDifferencesDense(int numDOFs, double timestep, double * massMatrix, ReducedForceModel * reducedForceModel, double dampingMassCoef, double dampingStiffnessCoef, int tangentialDampingMode_): IntegratorBaseDense(numDOFs, timestep, massMatrix, reducedForceModel, dampingMassCoef, dampingStiffnessCoef), tangentialDampingMode(tangentialDampingMode_)

@@ -51,24 +51,24 @@
   #define SGPADM sgpadm_
   #define INTEGER __CLPK_integer
 #else
-  #define DGETRF dgetrf
-  #define DGETRI dgetri
-  #define SGETRF sgetrf
-  #define SGETRI sgetri
-  #define DGESVD dgesvd
-  #define SGESVD sgesvd
-  #define DGELSY dgelsy
-  #define SGELSY sgelsy
-  #define DGESV dgesv
-  #define SGESV sgesv
-  #define DSYEV dsyev
-  #define SSYEV ssyev
-  #define DSYGV dsygv
-  #define SSYGV ssygv
-  #define SGEEV sgeev
-  #define DGEEV dgeev
-  #define DGPADM dgpadm_
-  #define SGPADM sgpadm_
+//   #define DGETRF dgetrf
+//   #define DGETRI dgetri
+//   #define SGETRF sgetrf
+//   #define SGETRI sgetri
+//   #define DGESVD dgesvd
+//   #define SGESVD sgesvd
+//   #define DGELSY dgelsy
+//   #define SGELSY sgelsy
+//   #define DGESV dgesv
+//   #define SGESV sgesv
+//   #define DSYEV dsyev
+//   #define SSYEV ssyev
+//   #define DSYGV dsygv
+//   #define SSYGV ssygv
+//   #define SGEEV sgeev
+//   #define DGEEV dgeev
+//   #define DGPADM dgpadm_
+//   #define SGPADM sgpadm_
   #define INTEGER int
 #endif
 

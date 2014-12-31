@@ -1,13 +1,12 @@
 set(OBJ_SRCS
   objMesh.cpp
-	objMesh-disjointSet.cpp
+  objMesh-disjointSet.cpp
   objMeshBinaryLoader.cpp
   objMeshEncode.cpp
-	objMeshGraph.cpp
-	objMeshOrientable.cpp
-	simpleSphere.cpp
-	#triangle-closestPoint.cpp
-	tribox3.cpp
+  objMeshGraph.cpp
+  objMeshOrientable.cpp
+  simpleSphere.cpp
+  tribox3.cpp
 )
 set(OBJ_HDRS
   objMesh-disjointSet.h
@@ -22,11 +21,11 @@ set(OBJ_HDRS
 if (VegaFEM_ENABLE_OpenGL_SUPPORT)
   set(OBJ_SRCS
     ${OBJ_SRCS}
-	  boundingBox.cpp
-	  octree.cpp
-	  triangle.cpp
-	  objMeshOctree.cpp
-	  objMeshOffsetVoxels.cpp
+    boundingBox.cpp
+    octree.cpp
+    triangle.cpp
+    objMeshOctree.cpp
+    objMeshOffsetVoxels.cpp
     objMeshRender.cpp
   )
   set(OBJ_HDRS

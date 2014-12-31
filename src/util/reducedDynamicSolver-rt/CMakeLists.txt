@@ -1,0 +1,69 @@
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libcamera
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libconfigFile
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libcorotationalLinearFEM
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libelasticForceModel
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libforceModel
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libvega-getopts
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libgraph
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libinsertRows
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegrator
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorSparse
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorDense
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libisotropicHyperelasticFEM
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../liblighting
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libloadList
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libmassSpringSystem
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libminivector
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libobjMesh
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libperformanceCounter
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libpolarDecomposition
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libsceneObject
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libsparseMatrix
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libsparseSolver
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libstvk
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libvolumetricMesh
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+add_executable(reducedDynamicSolver-rt reducedDynamicSolver-rt.cpp initGraphics.cpp)
+target_include_directories(reducedDynamicSolver-rt
+  PUBLIC
+    ${GLUI_INCLUDE_DIRS}
+)
+target_link_libraries(reducedDynamicSolver-rt 
+  objMeshGPUDeformer 
+  objMesh 
+  imageIO 
+  modalMatrix 
+  sceneObjectReduced 
+  sceneObject 
+  objMeshGPUDeformer 
+  objMesh 
+  imageIO 
+  integratorSparse 
+  integratorDense 
+  integrator 
+  reducedStvk 
+  stvk 
+  reducedElasticForceModel 
+  reducedForceModel 
+  forceModel 
+  matrix 
+  matrixIO 
+  lighting 
+  configFile 
+  volumetricMesh 
+  loadList 
+  vega-getopts 
+  camera 
+  minivector 
+  openGLHelper
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${OPENGL_gl_LIBRARY} 
+  ${GLUT_glut_LIBRARY} 
+  ${OPENGL_glu_LIBRARY} 
+  ${GLUI_LIBRARY})
+

@@ -7,5 +7,5 @@ vega_add_library(renderVolumetricMesh
 target_link_libraries(renderVolumetricMesh
   PUBLIC
     volumetricMesh
-    openglhelper
+    openGLHelper
 )

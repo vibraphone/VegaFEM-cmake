@@ -9,7 +9,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libgraph
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libinsertRows
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegrator
-	  ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorSparse
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../libintegratorSparse
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libisotropicHyperelasticFEM
     ${CMAKE_CURRENT_SOURCE_DIR}/../../liblighting
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libloadList

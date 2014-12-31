@@ -7,6 +7,6 @@ vega_add_library(modalMatrix
 target_link_libraries(modalMatrix
   PUBLIC
     matrixIO
-    ${LAPACK_LIBRARIES}
-    ${BLAS_LIBRARY}
+     ${LAPACK_LIBRARIES}
+     ${BLAS_LIBRARY}
 )

@@ -251,11 +251,9 @@ int ImplicitBackwardEulerDense::DoTimestep()
         INTEGER LDB = r;
         INTEGER INFO;
 
-        #ifdef __APPLE__
-          #define DGESV dgesv_
-        #else
-          #define DGESV dgesv
-        #endif
+         #ifdef __APPLE__
+           #define DGESV dgesv_
+         #endif
 
         DGESV ( &N, &NRHS, A, &LDA, IPIV->GetBuf(), B, &LDB, &INFO );
 
@@ -270,12 +268,10 @@ int ImplicitBackwardEulerDense::DoTimestep()
       case symmetricMatrixSolver:
       {
         // call dsysv ( uplo, n, nrhs, a, lda, ipiv, b, ldb, work, lwork, info)
-  
-        #ifdef __APPLE__
-          #define DSYSV dsysv_
-        #else
-          #define DSYSV dsysv
-        #endif
+
+         #ifdef __APPLE__
+           #define DSYSV dsysv_
+         #endif
 
         char uplo = 'U';
         INTEGER nrhs = 1;
@@ -297,12 +293,10 @@ int ImplicitBackwardEulerDense::DoTimestep()
       {
         // call dposv ( uplo, n, nrhs, a, lda, b, ldb, info)
 
-        #ifdef __APPLE__
-          #define DPOSV dposv_
-        #else
-          #define DPOSV dposv
-        #endif
-  
+         #ifdef __APPLE__
+           #define DPOSV dposv_
+         #endif
+
         char uplo = 'U';
         INTEGER nrhs = 1;
         INTEGER info = 0;
