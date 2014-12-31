@@ -49,10 +49,12 @@ strength of Vega lies in its many C/C++ libraries which depend minimally on
 each other, and are in most cases independently reusable. Vega contains about
 50,000 lines of C/C++ code.
 
-Most of Vega was written by Jernej Barbič. Other code contributors include Fun
-Shing Sin, Daniel Schroeder and Christopher Twigg.
+Most of Vega was written by Jernej Barbič.
+Other code contributors include Fun Shing Sin, Daniel Schroeder and Christopher Twigg.
+Vega is named in honor of `Jurij Vega`_.
 
 .. _Vega:  http://run.usc.edu/vega/
+.. _Jurij Vega: http://en.wikipedia.org/wiki/Jurij_Vega
 .. [Bar07]  Jernej Barbič.
             Real-time Reduced Large-Deformation Models and Distributed Contact for Computer Graphics and Haptics.
             PhD thesis, Carnegie Mellon University, August 2007.
