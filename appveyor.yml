@@ -4,9 +4,6 @@ branches:
 
 clone_depth: 16
 
-cache:
- - cmake-inst
-
 environment:
   matrix:
     #- GENERATOR: "Visual Studio 10 2010"
@@ -27,9 +24,8 @@ install:
 build_script:
  - cmd: set PATH=C:/ProgramData/chocolatey/bin;C:/tools/ninja;%PATH%
  - cmd: call "C:/Program Files (x86)/Microsoft Visual Studio %VS_VERSION%/Common7/Tools/vsvars32.bat"
-   # Get a list of generators and the CMake version
+   # Get the CMake version
  - cmd: cmake --version
- - cmd: cmake --help
    # Create a build directory inside the source tree
  - cmd: mkdir build
  - cmd: cd build
