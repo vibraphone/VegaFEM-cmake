@@ -41,11 +41,24 @@ void GenerateMassMatrix::computeMassMatrix(
     massMatrixOutline = new SparseMatrixOutline(n);
     for(int el=0; el <volumetricMesh->getNumElements(); el++)
     {
-      volumetricMesh->computeElementMassMatrix(el, buffer);
+      /* We would like to skip the element, but then we end up with a
+       * mass matrix that does not report the proper size (if any
+       * omitted elements leave vertices isolated).
+      if (volumetricMesh->getElementStatus(el) == VolumetricMesh::DEAD)
+        continue;
+       */
+
+      if (volumetricMesh->getElementStatus(el) != VolumetricMesh::DEAD)
+        volumetricMesh->computeElementMassMatrix(el, buffer);
       for(int i=0; i < numElementVertices; i++)
         for(int j=0; j < numElementVertices; j++)
         {
-          massMatrixOutline->AddEntry(volumetricMesh->getVertexIndex(el,i),volumetricMesh->getVertexIndex(el,j),  buffer[numElementVertices * j + i]);
+          massMatrixOutline->AddEntry(
+            volumetricMesh->getVertexIndex(el,i),
+            volumetricMesh->getVertexIndex(el,j),
+            volumetricMesh->getElementStatus(el) == VolumetricMesh::DEAD ?
+              0.0 :
+              buffer[numElementVertices * j + i]);
         }
     }
   }
@@ -54,11 +67,21 @@ void GenerateMassMatrix::computeMassMatrix(
     massMatrixOutline = new SparseMatrixOutline(3*n);
     for(int el=0; el <volumetricMesh->getNumElements(); el++)
     {
-      volumetricMesh->computeElementMassMatrix(el, buffer);
+      /* We would like to skip the element, but then we end up with a
+       * mass matrix that does not report the proper size (if any
+       * omitted elements leave vertices isolated).
+      if (volumetricMesh->getElementStatus(el) == VolumetricMesh::DEAD)
+        continue;
+       */
+      if (volumetricMesh->getElementStatus(el) != VolumetricMesh::DEAD)
+        volumetricMesh->computeElementMassMatrix(el, buffer);
       for(int i=0; i < numElementVertices; i++)
         for(int j=0; j < numElementVertices; j++)
         {
-          double entry = buffer[numElementVertices * j + i];
+          double entry =
+            (volumetricMesh->getElementStatus(el) == VolumetricMesh::DEAD) ?
+              0.0 :
+              buffer[numElementVertices * j + i];
           int indexi = volumetricMesh->getVertexIndex(el,i);
           int indexj = volumetricMesh->getVertexIndex(el,j);
           massMatrixOutline->AddEntry(3*indexi+0, 3*indexj+0, entry);
