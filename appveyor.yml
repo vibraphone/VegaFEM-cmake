@@ -1,6 +1,6 @@
 branches:
   only:
-    - AddWindowsAndLapackFixes
+    - cmake-osx
 
 clone_depth: 16
 

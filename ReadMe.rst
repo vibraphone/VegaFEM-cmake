@@ -5,6 +5,13 @@ VegaFEM Library
 :Revision: 2.0
 :Description: Vega FEM is a C++ library for interactive deformable object simulation
 
+.. image:: https://travis-ci.org/vibraphone/VegaFEM-cmake.svg
+   :alt: Travis-CI Build Status
+   :target: https://travis-ci.org/vibraphone/VegaFEM-cmake
+
+.. image:: https://ci.appveyor.com/api/projects/status/391ybm9hvbj88m23/branch/cmake-osx?svg=true
+   :alt: AppVeyor Build Status
+   :target: https://ci.appveyor.com/project/vibraphone/vegaFEM-cmake/history
 
 Vega_ is a computationally efficient and stable C/C++ physics library for
 three-dimensional deformable object simulation. It is designed to model large
